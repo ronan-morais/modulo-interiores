@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Carousel } from "@/components/Carousel";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Icon } from "@/components/Icon";
@@ -167,23 +168,16 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="adv-grid">
-              {advantages.map((advantage, index) => (
-                <article
-                  className="adv"
-                  key={advantage.index}
-                  data-reveal
-                  style={
-                    {
-                      "--reveal-delay": `${(index % 3) * 80}ms`,
-                    } as CSSProperties
-                  }
-                >
-                  <span className="adv-index">{advantage.index}</span>
-                  <h3>{advantage.title}</h3>
-                  <p>{advantage.description}</p>
-                </article>
-              ))}
+            <div data-reveal>
+              <Carousel label="Vantagens da obra a seco" tone="dark">
+                {advantages.map((advantage) => (
+                  <article className="adv" key={advantage.index}>
+                    <span className="adv-index">{advantage.index}</span>
+                    <h3>{advantage.title}</h3>
+                    <p>{advantage.description}</p>
+                  </article>
+                ))}
+              </Carousel>
             </div>
           </div>
         </section>
@@ -216,19 +210,14 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="service-grid">
-              {services.map((service, index) => (
-                <Link
-                  className="service-card"
-                  key={service.id}
-                  href={`/servicos#${service.id}`}
-                  data-reveal
-                  style={
-                    {
-                      "--reveal-delay": `${(index % 3) * 80}ms`,
-                    } as CSSProperties
-                  }
-                >
+            <div data-reveal>
+              <Carousel label="Serviços executados">
+                {services.map((service) => (
+                  <Link
+                    className="service-card"
+                    key={service.id}
+                    href={`/servicos#${service.id}`}
+                  >
                   <span className="plate">
                     <Image
                       src={service.image}
@@ -244,7 +233,8 @@ export default function HomePage() {
                   <h3>{service.title}</h3>
                   <p>{service.homeDescription}</p>
                 </Link>
-              ))}
+                ))}
+              </Carousel>
             </div>
           </div>
         </section>

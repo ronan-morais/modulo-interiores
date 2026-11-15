@@ -13,6 +13,7 @@ Site institucional de uma empresa de drywall, forros e pisos em Belo Horizonte, 
 ## Movimento e interação
 
 - `components/Reveal.tsx` observa os blocos `[data-reveal]` e revela cada um ao entrar na tela; elementos acima da dobra aparecem já visíveis e o atraso vem de `--reveal-delay`.
+- `components/Carousel.tsx` transforma os cards de serviços e as vantagens em carrossel com scroll-snap: setas, contador `01 / 06`, arraste no celular e setas do teclado com o track focado. Três cards por vez no desktop, dois até 980px e um com espiada do próximo até 720px.
 - Hero com entrada em cascata, zoom lento na imagem e header que ganha sombra ao rolar (sticky apenas acima de 1180px).
 - Hover com zoom de imagem nos cards, sublinhado animado no menu, seta que desloca nos botões e barra de progresso animada no preview do formulário.
 - `[data-reveal-pending]` só é aplicado depois da hidratação: sem JavaScript o conteúdo continua visível. Com `prefers-reduced-motion: reduce` tudo aparece de imediato e as transições são desligadas.
