@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import { JsonLd } from "@/components/JsonLd";
+import { Reveal } from "@/components/Reveal";
 import { businessSchema } from "@/lib/schema";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -108,6 +109,7 @@ export default function RootLayout({
           Pular para o conteúdo
         </a>
         {children}
+        <Reveal />
         <JsonLd data={businessSchema()} />
       </body>
     </html>

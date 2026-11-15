@@ -52,7 +52,7 @@ export function Header({ active, variant = "default" }: HeaderProps) {
           ) : (
             <Link className="btn btn-dark btn-sm" href="/orcamento">
               Orçamento online
-              <Icon name="arrow-up-right" size={15} />
+              <Icon name="arrow-up-right" size={15} className="icon-arrow-diag" />
             </Link>
           )}
         </div>

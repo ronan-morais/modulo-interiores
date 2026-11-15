@@ -3,15 +3,16 @@ export const site = {
   shortName: "Módulo",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://modulointeriores.com.br",
   description:
-    "Instalação e manutenção de paredes em drywall, forros de PVC, modular e gesso, e pisos em Belo Horizonte e região metropolitana.",
+    "Construção a seco em Belo Horizonte: drywall, forros de PVC, modular e gesso, piso modular e vinílico. Obra sem quebra-quebra, com prazo curto e imóvel em uso.",
   phone: {
-    display: "(31) 3213-4567",
-    href: "tel:+553132134567",
+    display: "(31) 99740-8629",
+    href: "tel:+5531997408629",
+    e164: "+5531997408629",
   },
   whatsapp: {
-    display: "(31) 99123-4567",
-    number: "5531991234567",
-    href: "https://wa.me/5531991234567",
+    display: "(31) 99740-8629",
+    number: "5531997408629",
+    href: "https://wa.me/5531997408629",
   },
   email: "contato@modulointeriores.com.br",
   instagram: "@modulointeriores",
@@ -59,14 +60,14 @@ export const services: Service[] = [
     category: "Divisórias",
     title: "Paredes e divisórias em drywall",
     homeDescription:
-      "Estrutura metálica, isolamento acústico e acabamento em gesso liso. Do traçado da planta à pintura final.",
+      "Estrutura metálica, isolamento acústico e acabamento em gesso liso. Parede nova sem levantar alvenaria.",
     pageDescription:
-      "Estrutura metálica com montantes reforçados, isolamento em lã de vidro e fechamento em placas. Entregamos pronto para pintura, com portas, batentes e rodapé no mesmo acabamento.",
-    lead: "Criamos novos ambientes sem quebra-quebra, com obra seca e limpa.",
+      "Estrutura metálica com montantes reforçados, isolamento em lã de vidro e fechamento em placas. A parede nasce pronta para pintura, com portas, batentes e rodapé no mesmo acabamento — sem demolição, sem argamassa e sem entulho dentro de casa.",
+    lead: "Ambiente novo no lugar de uma parede que não existia, em poucos dias.",
     bullets: [
       "Divisórias acústicas e corta-fogo",
       "Nichos, sancas e prateleiras embutidas",
-      "Portas e batentes no mesmo acabamento",
+      "Pronto para pintura, com portas e rodapé",
     ],
     image: "/images/divisorias-drywall-bh.webp",
     alt: "Sala integrada com divisória em drywall e porta de vidro",
@@ -79,12 +80,12 @@ export const services: Service[] = [
     homeDescription:
       "Placas laváveis e resistentes à umidade para cozinhas, banheiros, varandas e áreas de serviço.",
     pageDescription:
-      "Placas de PVC com perfis aparentes ou ocultos, resistentes à umidade e fáceis de lavar. Indicado para cozinhas, banheiros, varandas e áreas de serviço.",
-    lead: "A solução mais rápida para ambientes molhados.",
+      "Placas de PVC com perfis aparentes ou ocultos, resistentes à umidade e fáceis de lavar. Instalação seca sobre a laje existente, sem quebrar revestimento nem tirar o ambiente de uso por muito tempo.",
+    lead: "Área molhada resolvida sem quebra de alvenaria.",
     bullets: [
-      "100% lavável e à prova de umidade",
-      "Instalação sem quebra de alvenaria",
-      "Manutenção com troca de placas",
+      "100% lavável e resistente à umidade",
+      "Instalação seca, sem quebra de alvenaria",
+      "Troca de placas sem obra",
     ],
     image: "/images/forro-pvc-bh.webp",
     alt: "Forro de PVC instalado em banheiro com iluminação embutida",
@@ -97,8 +98,8 @@ export const services: Service[] = [
     homeDescription:
       "Placas removíveis com malha de sustentação. Ideal para escritórios, lojas e manutenção sem obra.",
     pageDescription:
-      "Malha de sustentação oculta com placas removíveis, permitindo acesso à infraestrutura elétrica e hidráulica sem obra. Muito usado em escritórios, lojas e clínicas.",
-    lead: "Manutenção simples, sem interromper a operação.",
+      "Malha de sustentação oculta com placas removíveis, permitindo acesso à infraestrutura elétrica e hidráulica sem obra. Muito usado em escritórios, lojas e clínicas que não podem parar.",
+    lead: "Manutenção simples, com a operação rodando.",
     bullets: [
       "Placas removíveis para infraestrutura",
       "Malha alinhada ao layout e à iluminação",
@@ -115,7 +116,7 @@ export const services: Service[] = [
     homeDescription:
       "Sancas, rebaixos e iluminação embutida desenhados sob medida para cada ambiente.",
     pageDescription:
-      "Sancas, rebaixos, cortineiros e iluminação indireta desenhados sob medida. Acabamento em gesso liso ou massa corrida, sem emendas aparentes.",
+      "Sancas, rebaixos, cortineiros e iluminação indireta desenhados sob medida, montados em estrutura seca sob a laje. Acabamento em gesso liso ou massa corrida, sem emendas aparentes.",
     lead: "Desenho de luz que valoriza cada ambiente.",
     bullets: [
       "Sancas, rebaixos e cortineiros",
@@ -133,7 +134,7 @@ export const services: Service[] = [
     homeDescription:
       "Placas elevadas de alta resistência para salas técnicas, lojas, auditórios e escritórios.",
     pageDescription:
-      "Placas elevadas de alta resistência sobre pedestais, com acesso rápido ao piso técnico. Para salas de servidores, lojas, auditórios e áreas com cabeamento.",
+      "Placas elevadas de alta resistência sobre pedestais, com acesso rápido ao piso técnico. Para salas de servidores, lojas, auditórios e áreas com cabeamento — instalado sem parar a operação.",
     lead: "Piso técnico com acesso imediato à infraestrutura.",
     bullets: [
       "Acesso rápido ao piso técnico",
@@ -149,9 +150,9 @@ export const services: Service[] = [
     category: "Piso",
     title: "Piso vinílico",
     homeDescription:
-      "Régua ou manta, conforto acústico e instalação rápida sobre piso existente, sem quebra-quebra.",
+      "Régua ou manta, conforto acústico e instalação sobre piso existente, sem retirar o revestimento antigo.",
     pageDescription:
-      "Régua, manta ou placa adesiva, em camadas de uso residencial e comercial. Instalação sobre piso existente, com conforto acústico e limpeza fácil.",
+      "Régua, manta ou placa adesiva, em camadas de uso residencial e comercial. Aplicado sobre o piso existente: sem quebra-quebra, sem entulho e com o ambiente de volta no mesmo dia.",
     lead: "Acabamento quente, silencioso e resistente.",
     bullets: [
       "Régua, manta ou placa adesiva",
@@ -160,6 +161,51 @@ export const services: Service[] = [
     ],
     image: "/images/piso-vinilico-bh.webp",
     alt: "Sala de estar com piso vinílico claro",
+  },
+];
+
+export type Advantage = {
+  index: string;
+  title: string;
+  description: string;
+};
+
+export const advantages: Advantage[] = [
+  {
+    index: "01",
+    title: "Sem quebra-quebra",
+    description:
+      "Nada de demolir alvenaria para abrir parede ou passagem. O sistema chega em perfis, placas e painéis — e o entulho não entra na sua casa.",
+  },
+  {
+    index: "02",
+    title: "Prazo curto e previsível",
+    description:
+      "Etapa seca não espera cura de cimento nem secagem de argamassa. Menos dias de obra e menos surpresa no cronograma.",
+  },
+  {
+    index: "03",
+    title: "Imóvel em uso durante a obra",
+    description:
+      "Casa ou loja continuam funcionando: trabalhamos por etapas, protegemos piso e móveis e limpamos ao fim de cada dia.",
+  },
+  {
+    index: "04",
+    title: "Menos umidade e mofo",
+    description:
+      "Não entra água na mistura. Em cozinha, banheiro e área de serviço, PVC e placas específicas resistem à umidade.",
+  },
+  {
+    index: "05",
+    title: "Infraestrutura acessível",
+    description:
+      "Elétrica e hidráulica correm por dentro de paredes e forros. Forro modular e piso elevado dão acesso aos pontos sem quebrar acabamento.",
+  },
+  {
+    index: "06",
+    title: "Conforto acústico e térmico",
+    description:
+      "A lã mineral entre as placas reduz o ruído entre ambientes e ajuda a estabilizar a temperatura dos cômodos.",
   },
 ];
 

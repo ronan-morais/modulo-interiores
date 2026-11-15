@@ -19,7 +19,8 @@ const trustItems = [
   { icon: "timer" as const, text: "Resposta em até 1 dia útil" },
   { icon: "ruler" as const, text: "Visita de medição sem custo em BH" },
   { icon: "shield-check" as const, text: "Garantia por escrito do serviço" },
-  { icon: "file-text" as const, text: "Proposta com material e mão de obra" },
+  { icon: "file-text" as const, text: "Proposta com material, mão de obra e prazo" },
+  { icon: "check" as const, text: "Obra a seco: sem quebra-quebra" },
 ];
 
 export default function OrcamentoPage() {
@@ -35,12 +36,12 @@ export default function OrcamentoPage() {
           </nav>
         </div>
 
-        <div className="container quote-intro">
+        <div className="container quote-intro" data-reveal>
           <h1>Vamos dimensionar a sua obra.</h1>
           <p>
             Dois passos, cerca de três minutos. Ao final você envia o pedido
-            pelo WhatsApp e recebe uma proposta com escopo, material e prazo
-            detalhados.
+            pelo WhatsApp e recebe uma proposta com sistema construtivo, escopo,
+            material e prazo — sem visita obrigatória.
           </p>
         </div>
 

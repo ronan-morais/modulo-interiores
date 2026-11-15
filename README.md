@@ -10,6 +10,13 @@ Site institucional de uma empresa de drywall, forros e pisos em Belo Horizonte, 
 - `next/font` com Fraunces, Hanken Grotesk e IBM Plex Mono
 - Sem dependências de runtime além de React/Next
 
+## Movimento e interação
+
+- `components/Reveal.tsx` observa os blocos `[data-reveal]` e revela cada um ao entrar na tela; elementos acima da dobra aparecem já visíveis e o atraso vem de `--reveal-delay`.
+- Hero com entrada em cascata, zoom lento na imagem e header que ganha sombra ao rolar (sticky apenas acima de 1180px).
+- Hover com zoom de imagem nos cards, sublinhado animado no menu, seta que desloca nos botões e barra de progresso animada no preview do formulário.
+- `[data-reveal-pending]` só é aplicado depois da hidratação: sem JavaScript o conteúdo continua visível. Com `prefers-reduced-motion: reduce` tudo aparece de imediato e as transições são desligadas.
+
 ## Rodar localmente
 
 ```bash
@@ -53,4 +60,4 @@ npx vercel --prod
 
 ## Conteúdo e contato
 
-Os dados de contato, cidades atendidas e os seis serviços ficam em `lib/site.ts`. O formulário de orçamento monta a mensagem no navegador e abre o WhatsApp; o rascunho é salvo em `localStorage`. Não há backend nem envio de arquivos — as fotos são anexadas na conversa do WhatsApp.
+Os dados de contato (telefone e WhatsApp: (31) 99740-8629), cidades atendidas e os seis serviços ficam em `lib/site.ts`, junto com a lista `advantages` da seção "Por que obra a seco". O formulário de orçamento monta a mensagem no navegador e abre o WhatsApp; o rascunho é salvo em `localStorage`. Não há backend nem envio de arquivos — as fotos são anexadas na conversa do WhatsApp.

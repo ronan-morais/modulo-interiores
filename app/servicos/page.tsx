@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -33,8 +34,10 @@ export default function ServicosPage() {
                 Instalação e manutenção de paredes, forros e pisos.
               </h1>
               <p className="page-intro-note">
-                Executamos obra nova, reforma e reparo pontual, em residências e
-                empresas, com equipe própria e material de linha profissional.
+                Tudo em obra a seco: perfis, placas, painéis e piso aplicado
+                sobre o contrapiso existente. Obra nova, reforma e reparo
+                pontual em BH, com equipe própria e material de linha
+                profissional.
               </p>
             </div>
           </div>
@@ -48,7 +51,7 @@ export default function ServicosPage() {
                 id={service.id}
                 key={service.id}
               >
-                <div className="service-copy">
+                <div className="service-copy" data-reveal>
                   <div className="service-index">
                     <span className="num">{service.index}</span>
                     <span className="cat">{service.category}</span>
@@ -66,7 +69,7 @@ export default function ServicosPage() {
                   </ul>
                 </div>
 
-                <div className="service-plate">
+                <div className="service-plate" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
                   <Image
                     src={service.image}
                     alt={service.alt}
@@ -81,21 +84,22 @@ export default function ServicosPage() {
 
         <section className="services-cta" aria-labelledby="servicos-cta-title">
           <div className="container services-cta-inner">
-            <div>
+            <div data-reveal>
               <h2 id="servicos-cta-title">
                 Não sabe qual forro ou piso usar?
                 <br />
                 A gente mede e indica.
               </h2>
               <p className="services-cta-note">
-                Visita técnica sem custo em Belo Horizonte e região
-                metropolitana.
+                Visita técnica sem custo em Belo Horizonte e região. Você recebe
+                o sistema a seco com melhor custo, prazo e manutenção para cada
+                ambiente.
               </p>
             </div>
-            <div className="services-cta-actions">
+            <div className="services-cta-actions" data-reveal style={{ "--reveal-delay": "70ms" } as CSSProperties}>
               <Link className="btn btn-light btn-md" href="/orcamento">
-                Pedir orçamento
-                <Icon name="arrow-right" size={16} />
+                Receber orçamento
+                <Icon name="arrow-right" size={16} className="icon-arrow" />
               </Link>
               <a
                 className="btn btn-outline-light btn-md"

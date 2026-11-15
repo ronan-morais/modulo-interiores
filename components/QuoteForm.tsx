@@ -219,7 +219,7 @@ export function QuoteForm() {
 
         <div className="help-card">
           <p className="eyebrow">Prefere falar agora?</p>
-          <p>Atendemos por WhatsApp de segunda a sábado.</p>
+          <p>Atendemos por WhatsApp de segunda a sábado, das 8h às 18h.</p>
           <a
             className="btn btn-dark"
             href={site.whatsapp.href}
@@ -598,7 +598,7 @@ export function QuoteForm() {
                     </button>
                     <button className="btn btn-accent" type="submit">
                       Continuar
-                      <Icon name="arrow-right" size={16} />
+                      <Icon name="arrow-right" size={16} className="icon-arrow" />
                     </button>
                   </>
                 ) : (
@@ -614,8 +614,8 @@ export function QuoteForm() {
                       Voltar
                     </button>
                     <button className="btn btn-accent" type="submit">
-                      Enviar pedido
-                      <Icon name="arrow-right" size={16} />
+                      Receber orçamento
+                      <Icon name="arrow-right" size={16} className="icon-arrow" />
                     </button>
                   </>
                 )}

@@ -13,7 +13,7 @@ export function businessSchema() {
         name: site.name,
         url: site.url,
         description: site.description,
-        telephone: "+55 31 3213-4567",
+        telephone: site.phone.e164,
         email: site.email,
         image: `${site.url}/images/og-modulo-interiores.jpg`,
         logo: `${site.url}/icon.svg`,
