@@ -26,14 +26,16 @@ npm run build
 npm start
 ```
 
-## Publicar na Vercel
+## Publicação
 
-1. Suba o projeto para um repositório Git.
-2. Em [vercel.com/new](https://vercel.com/new), importe o repositório. O framework é detectado automaticamente.
-3. Configure a variável de ambiente `NEXT_PUBLIC_SITE_URL` com o domínio final, por exemplo `https://modulointeriores.com.br`.
-4. Faça o deploy. Nenhuma configuração extra é necessária.
+- Repositório: <https://github.com/ronan-morais/modulo-interiores> (privado)
+- Produção: <https://modulo-interiores.vercel.app>
 
-Também é possível publicar pela CLI:
+O projeto Vercel `modulo-interiores` está conectado ao repositório: cada push na `main` publica em produção. `NEXT_PUBLIC_SITE_URL` está definida em Production como `https://modulo-interiores.vercel.app`, valor usado em canonical, sitemap, robots e Open Graph.
+
+Ao apontar um domínio próprio (por exemplo `modulointeriores.com.br`), atualize `NEXT_PUBLIC_SITE_URL` nas variáveis de ambiente do projeto e refaça o deploy — caso contrário o canonical continua apontando para o endereço `vercel.app`.
+
+Deploy manual pela CLI:
 
 ```bash
 npx vercel --prod
