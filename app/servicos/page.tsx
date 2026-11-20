@@ -11,9 +11,9 @@ import { breadcrumbSchema, serviceListSchema } from "@/lib/schema";
 import { maintenance, maintenanceWhatsappHref, services, site } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Serviços de drywall, forros e pisos em BH",
+  title: "Drywall, móveis, forros e pisos em BH",
   description:
-    "Instalação e manutenção de paredes em drywall, forro de PVC, modular e gesso, piso modular e vinílico em BH. Obra residencial e comercial com equipe própria.",
+    "Instalação e manutenção de paredes e móveis em drywall (armários, closets, guarda-roupas, nichos), forro de PVC, modular e gesso, piso modular e vinílico em BH. Obra residencial e comercial com equipe própria.",
   path: "/servicos",
 });
 
@@ -31,12 +31,13 @@ export default function ServicosPage() {
             </nav>
             <div className="page-intro-grid">
               <h1 id="servicos-title">
-                Instalação e manutenção de paredes, forros e pisos.
+                Instalação e manutenção de paredes, móveis, forros e pisos.
               </h1>
               <p className="page-intro-note">
-                Tudo em obra a seco: perfis, placas, painéis e piso aplicado
-                sobre o contrapiso existente. Obra nova, reforma e manutenção
-                em BH, com equipe própria e material de linha profissional.
+                Tudo em obra a seco: perfis, placas, painéis, móveis sob medida
+                e piso aplicado sobre o contrapiso existente. Obra nova, reforma
+                e manutenção em BH, com equipe própria e material de linha
+                profissional.
               </p>
             </div>
           </div>

@@ -22,8 +22,9 @@ export function Footer() {
               </span>
             </Link>
             <p>
-              Drywall, forros e pisos em Belo Horizonte e região metropolitana.
-              Obra a seco, residencial e comercial, com equipe própria.
+              Drywall, móveis sob medida, forros e pisos em Belo Horizonte e
+              região metropolitana. Obra a seco, residencial e comercial, com
+              equipe própria.
             </p>
             <ul className="footer-contacts">
               <li>

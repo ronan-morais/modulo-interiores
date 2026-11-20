@@ -28,7 +28,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Drywall, forros e pisos em Belo Horizonte | Módulo Interiores",
+    default: "Drywall, móveis, forros e pisos em Belo Horizonte | Módulo Interiores",
     template: "%s | Módulo Interiores",
   },
   description: site.description,
@@ -39,6 +39,10 @@ export const metadata: Metadata = {
   keywords: [
     "drywall Belo Horizonte",
     "divisórias em drywall",
+    "armário de drywall",
+    "closet em drywall",
+    "guarda-roupa em drywall",
+    "nicho de drywall",
     "forro de PVC BH",
     "forro modular",
     "forro de gesso",
@@ -55,7 +59,7 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     url: site.url,
     siteName: site.name,
-    title: "Drywall, forros e pisos em Belo Horizonte | Módulo Interiores",
+    title: "Drywall, móveis, forros e pisos em Belo Horizonte | Módulo Interiores",
     description: site.description,
     images: [
       {
@@ -68,7 +72,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Drywall, forros e pisos em Belo Horizonte | Módulo Interiores",
+    title: "Drywall, móveis, forros e pisos em Belo Horizonte | Módulo Interiores",
     description: site.description,
     images: ["/images/og-modulo-interiores.jpg"],
   },

@@ -1,6 +1,6 @@
 # Módulo Interiores — site Next.js
 
-Site institucional de uma empresa de drywall, forros e pisos em Belo Horizonte, gerado a partir do arquivo `modulo.pen` (pen.dev).
+Site institucional de uma empresa de drywall, móveis, forros e pisos em Belo Horizonte, gerado a partir do arquivo `modulo.pen` (pen.dev).
 
 ## Stack
 
