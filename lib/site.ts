@@ -62,14 +62,14 @@ export const services: Service[] = [
     category: "Forro",
     title: "Forro de PVC",
     homeDescription:
-      "Lavável e resistente à umidade, instalado sem quebrar o revestimento.",
+      "Cores e padrões que imitam madeira, com resistência à umidade em áreas molhadas.",
     pageDescription:
-      "Placas de PVC com perfis aparentes ou ocultos, resistentes à umidade e fáceis de lavar. Instalação seca sobre a laje existente, sem quebrar revestimento nem tirar o ambiente de uso por muito tempo.",
-    lead: "Área molhada resolvida sem quebra de alvenaria.",
+      "Placas de PVC com perfis aparentes ou ocultos, resistentes à umidade e disponíveis em diferentes cores e padrões que imitam madeira. Instalação seca sobre a laje existente, sem quebrar o revestimento nem tirar o ambiente de uso.",
+    lead: "Visual de madeira, sem a manutenção da madeira.",
     bullets: [
-      "100% lavável e resistente à umidade",
+      "Diferentes cores e padrões que imitam madeira",
+      "Perfis aparentes ou ocultos",
       "Instalação seca, sem quebra de alvenaria",
-      "Troca de placas sem obra",
     ],
     image: "/images/forro-pvc-bh.webp",
     alt: "Forro de PVC instalado em banheiro com iluminação embutida",
