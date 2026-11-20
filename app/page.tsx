@@ -47,7 +47,7 @@ const processSteps = [
 export default function HomePage() {
   return (
     <>
-      <Header />
+      <Header activeHref="/" />
 
       <main id="conteudo">
         <section className="hero" aria-labelledby="hero-title">

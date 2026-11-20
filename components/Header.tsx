@@ -4,11 +4,11 @@ import { Icon } from "@/components/Icon";
 import { navLinks, site } from "@/lib/site";
 
 type HeaderProps = {
-  active?: "servicos" | "orcamento";
+  activeHref?: string;
   variant?: "default" | "back";
 };
 
-export function Header({ active, variant = "default" }: HeaderProps) {
+export function Header({ activeHref, variant = "default" }: HeaderProps) {
   return (
     <header className="site-header">
       <div className="container header-inner">
@@ -21,14 +21,10 @@ export function Header({ active, variant = "default" }: HeaderProps) {
                 <Link
                   href={link.href}
                   aria-current={
-                    active === "servicos" && link.href === "/servicos"
-                      ? "page"
-                      : undefined
+                    activeHref === link.href ? "page" : undefined
                   }
                   className={
-                    active === "servicos" && link.href === "/servicos"
-                      ? "is-active"
-                      : undefined
+                    activeHref === link.href ? "is-active" : undefined
                   }
                 >
                   {link.label}

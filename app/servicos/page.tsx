@@ -20,7 +20,7 @@ export const metadata: Metadata = pageMetadata({
 export default function ServicosPage() {
   return (
     <>
-      <Header active="servicos" />
+      <Header activeHref="/servicos" />
 
       <main id="conteudo">
         <section className="page-intro" aria-labelledby="servicos-title">

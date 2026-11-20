@@ -201,7 +201,7 @@ export const advantages: Advantage[] = [
 ];
 
 export const navLinks = [
+  { label: "Início", href: "/" },
   { label: "Serviços", href: "/servicos" },
-  { label: "Como funciona", href: "/#como-funciona" },
   { label: "Contato", href: "/#contato" },
 ];
