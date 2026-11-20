@@ -45,6 +45,8 @@ export const metadata: Metadata = {
     "piso modular",
     "piso vinílico",
     "instalação de forro",
+    "manutenção de forro",
+    "reparo de drywall",
     "reforma comercial BH",
   ],
   alternates: { canonical: "/" },

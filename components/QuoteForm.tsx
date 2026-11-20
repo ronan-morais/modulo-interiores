@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
-import { services, site } from "@/lib/site";
+import { quoteOptions, site } from "@/lib/site";
 
 const DRAFT_KEY = "modulo-orcamento-draft";
 const cityOptions = [
@@ -59,6 +59,9 @@ export function QuoteForm() {
   const [form, setForm] = useState<FormState>(initialState);
   const [error, setError] = useState("");
   const [draftSaved, setDraftSaved] = useState(false);
+  const [saveState, setSaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
 
   useEffect(() => {
     try {
@@ -69,7 +72,7 @@ export function QuoteForm() {
         ...current,
         ...parsed,
         selected: Array.isArray(parsed.selected)
-          ? parsed.selected.filter((id) => services.some((s) => s.id === id))
+          ? parsed.selected.filter((id) => quoteOptions.some((s) => s.id === id))
           : current.selected,
         consent: false,
       }));
@@ -86,7 +89,7 @@ export function QuoteForm() {
 
   const selectedTitles = useMemo(
     () =>
-      services
+      quoteOptions
         .filter((service) => form.selected.includes(service.id))
         .map((service) => service.title),
     [form.selected],
@@ -98,7 +101,7 @@ export function QuoteForm() {
       "",
       `Serviços: ${selectedTitles.join(", ") || "a definir"}`,
       `Tipo de imóvel: ${form.property}`,
-      form.area ? `Área aproximada: ${form.area} m²` : "",
+      form.area ? `Área total aproximada: ${form.area} m²` : "",
       form.rooms ? `Nº de ambientes: ${form.rooms}` : "",
       `Cidade: ${form.city}${form.district ? ` · ${form.district}` : ""}`,
       `Quando pretende executar: ${form.timeline}`,
@@ -153,6 +156,34 @@ export function QuoteForm() {
     setStep(2);
   }
 
+  async function saveLead() {
+    setSaveState("saving");
+    try {
+      const response = await fetch("/api/orcamentos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          services: form.selected,
+          property: form.property,
+          area: form.area,
+          rooms: form.rooms,
+          city: form.city,
+          district: form.district,
+          timeline: form.timeline,
+          details: form.details,
+          fileName: form.fileName,
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          consent: form.consent,
+        }),
+      });
+      setSaveState(response.ok ? "saved" : "error");
+    } catch {
+      setSaveState("error");
+    }
+  }
+
   function submitRequest(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.name.trim()) {
@@ -170,15 +201,24 @@ export function QuoteForm() {
     setError("");
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
     setStep(3);
+    void saveLead();
   }
 
   function resetForm() {
     setForm(initialState);
     setStep(1);
     setError("");
+    setSaveState("idle");
   }
 
   const progress = step === 1 ? "50%" : "100%";
+
+  const successTitle =
+    saveState === "error"
+      ? "Pedido pronto para envio"
+      : saveState === "saved"
+        ? "Pedido enviado"
+        : "Registrando pedido";
 
   return (
     <div className="container quote-layout">
@@ -240,14 +280,14 @@ export function QuoteForm() {
                 ? "Passo 1 de 2 · Serviços"
                 : step === 2
                   ? "Passo 2 de 2 · Contato"
-                  : "Pedido pronto"}
+                  : "Resumo do pedido"}
             </p>
             <h2>
               {step === 1
                 ? "O que você precisa?"
                 : step === 2
                   ? "Como podemos falar com você?"
-                  : "Pedido enviado"}
+                  : successTitle}
             </h2>
           </div>
           <p className="time-estimate">
@@ -264,10 +304,14 @@ export function QuoteForm() {
             <span className="success-icon">
               <Icon name="check" size={28} />
             </span>
-            <h2>Pedido pronto para envio.</h2>
-            <p>
-              Abrimos o WhatsApp com o resumo do orçamento. Se a janela não
-              abriu, use um dos botões abaixo e anexe as fotos na conversa.
+            <p aria-live="polite">
+              {saveState === "error"
+                ? "Não foi possível registrar o pedido no sistema agora, mas o WhatsApp foi aberto com todos os dados."
+                : saveState === "saved"
+                  ? "Pedido registrado. O WhatsApp foi aberto com o resumo."
+                  : "Registrando o pedido…"}{" "}
+              Se a janela do WhatsApp não abriu, use um dos botões abaixo e
+              anexe as fotos na conversa.
             </p>
             <div className="success-actions">
               <a
@@ -293,7 +337,7 @@ export function QuoteForm() {
             {step === 1 ? (
               <>
                 <div className="service-tiles" role="group" aria-label="Serviços">
-                  {services.map((service) => {
+                  {quoteOptions.map((service) => {
                     const selected = form.selected.includes(service.id);
                     return (
                       <button
@@ -340,7 +384,7 @@ export function QuoteForm() {
                 <div className="field-row">
                   <div className="field-group">
                     <label className="field-label" htmlFor="area">
-                      Área aproximada (m²)
+                      Área total aproximada (m²)
                     </label>
                     <input
                       className="input"
@@ -350,9 +394,13 @@ export function QuoteForm() {
                       min="1"
                       inputMode="numeric"
                       placeholder="Ex.: 45"
+                      aria-describedby="area-hint"
                       value={form.area}
                       onChange={(event) => update("area", event.target.value)}
                     />
+                    <span className="field-hint" id="area-hint">
+                      Some todos os ambientes. Se não souber, deixe em branco.
+                    </span>
                   </div>
                   <div className="field-group">
                     <label className="field-label" htmlFor="rooms">
@@ -479,7 +527,7 @@ export function QuoteForm() {
                     <dt>Imóvel</dt>
                     <dd>
                       {form.property}
-                      {form.area ? ` · ${form.area} m²` : ""}
+                      {form.area ? ` · ${form.area} m² no total` : ""}
                       {form.rooms ? ` · ${form.rooms} ambientes` : ""}
                     </dd>
                   </div>

@@ -2,12 +2,11 @@ import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Carousel } from "@/components/Carousel";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Icon } from "@/components/Icon";
 import { pageMetadata } from "@/lib/metadata";
-import { advantages, services, site } from "@/lib/site";
+import { advantages, maintenance, maintenanceWhatsappHref, services, site } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
   title: "Drywall, forros e pisos em Belo Horizonte | Módulo Interiores",
@@ -16,30 +15,31 @@ export const metadata: Metadata = pageMetadata({
   absoluteTitle: true,
 });
 
+const proofItems = [
+  { label: "Equipe própria", detail: "Medição, projeto e execução." },
+  { label: "Orçamento em 1 dia útil", detail: "Com material, mão de obra e prazo." },
+  { label: "Medição sem custo", detail: "Em Belo Horizonte e região." },
+  { label: "Garantia por escrito", detail: "No serviço executado." },
+];
+
 const processSteps = [
   {
     index: "01",
     title: "Orçamento online",
     description:
-      "Descreva o ambiente, envie fotos e medidas. Devolvemos escopo, sistema construtivo e valor em até 1 dia útil.",
+      "Conte o ambiente e envie fotos e medidas. A resposta traz escopo e valor em até 1 dia útil.",
   },
   {
     index: "02",
     title: "Medição no local",
     description:
-      "Conferimos medidas e infraestrutura e fechamos o sistema a seco: perfis, placas, isolamento e pontos de luz.",
+      "Conferimos medidas e infraestrutura e definimos o sistema a seco de cada ambiente.",
   },
   {
     index: "03",
-    title: "Execução",
+    title: "Execução e entrega",
     description:
-      "Material entregue, ambientes protegidos e equipe própria no canteiro. Limpeza ao fim de cada dia.",
-  },
-  {
-    index: "04",
-    title: "Entrega e garantia",
-    description:
-      "Conferência do acabamento ponto a ponto, entulho retirado e garantia por escrito do serviço.",
+      "Equipe própria no canteiro, limpeza diária, conferência do acabamento e garantia por escrito.",
   },
 ];
 
@@ -62,21 +62,12 @@ export default function HomePage() {
 
           <div className="container hero-inner">
             <div className="hero-copy">
-              <p className="eyebrow hero-eyebrow">
-                Drywall · Forros · Pisos · Obra a seco
-              </p>
               <h1 id="hero-title">
-                Ambiente novo em
-                <br />
-                poucos dias, sem
-                <br />
-                quebra-quebra.
+                Ambiente novo em poucos dias, sem quebra-quebra.
               </h1>
               <p className="hero-subhead">
-                Construção a seco em Belo Horizonte: paredes e divisórias em
-                drywall, forros de PVC, modular e gesso, piso modular e
-                vinílico. Sem demolição, sem entulho e com o imóvel em uso
-                durante a obra.
+                Drywall, forros e pisos em Belo Horizonte, com equipe própria.
+                Obra a seco: sem demolição, sem entulho e com o imóvel em uso.
               </p>
 
               <div className="hero-actions">
@@ -84,101 +75,25 @@ export default function HomePage() {
                   Receber orçamento em 1 dia útil
                   <Icon name="arrow-right" size={16} className="icon-arrow" />
                 </Link>
-                <Link className="btn btn-outline-light btn-md" href="/servicos">
-                  Ver serviços
-                </Link>
                 <a className="hero-call" href={site.phone.href}>
-                  <Icon name="phone" size={14} />
+                  <Icon name="phone" size={15} />
                   ou ligue {site.phone.display}
                 </a>
               </div>
             </div>
-
-            <div className="hero-meta">
-              <p className="eyebrow">Orçamento online</p>
-              <p>
-                Conte o ambiente e envie fotos. A proposta volta com sistema
-                construtivo, material, prazo e valor.
-              </p>
-            </div>
           </div>
         </section>
 
-        <div className="coverage">
-          <div className="container coverage-inner">
-            <p className="eyebrow">Atendimento</p>
-            <ul>
-              {site.coverageCities.map((city) => (
-                <li key={city}>{city}</li>
+        <section className="proof" aria-label="Compromissos do atendimento">
+          <div className="container">
+            <ul className="proof-list">
+              {proofItems.map((item) => (
+                <li key={item.label}>
+                  <strong>{item.label}</strong>
+                  <span>{item.detail}</span>
+                </li>
               ))}
             </ul>
-          </div>
-        </div>
-
-        <section className="intro" id="sobre" aria-labelledby="sobre-title">
-          <div className="container intro-grid">
-            <div data-reveal>
-              <p className="eyebrow">Quem executa</p>
-              <h2 id="sobre-title">
-                Uma equipe só, do primeiro traço ao último acabamento.
-              </h2>
-            </div>
-            <div className="intro-copy" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
-              <p>
-                Projetamos o sistema construtivo, compramos o material e
-                executamos a obra com equipe própria. Como tudo é feito a seco,
-                você ganha tempo: menos demolição, menos entulho e menos dias com
-                a casa ou a loja fora de uso.
-              </p>
-              <ul className="facts">
-                <li className="fact">
-                  <span className="fact-index">01</span>
-                  <span>Medição e projeto no local, sem custo em BH e região.</span>
-                </li>
-                <li className="fact">
-                  <span className="fact-index">02</span>
-                  <span>Materiais de linha profissional, com nota e garantia por escrito.</span>
-                </li>
-                <li className="fact">
-                  <span className="fact-index">03</span>
-                  <span>Obra residencial e comercial, por etapas ou fora do horário.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        <section
-          className="advantages"
-          id="obra-a-seco"
-          aria-labelledby="advantages-title"
-        >
-          <div className="container">
-            <div className="advantages-head">
-              <div data-reveal>
-                <p className="eyebrow">Por que obra a seco</p>
-                <h2 id="advantages-title">
-                  Menos entulho, menos prazo, mais imóvel funcionando.
-                </h2>
-              </div>
-              <p className="advantages-note" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
-                Construção a seco troca demolição, argamassa e cura por perfis,
-                placas e encaixes. O material entra pronto e o ambiente sai
-                acabado — sem o canteiro invadir o resto da casa.
-              </p>
-            </div>
-
-            <div data-reveal>
-              <Carousel label="Vantagens da obra a seco" tone="dark">
-                {advantages.map((advantage) => (
-                  <article className="adv" key={advantage.index}>
-                    <span className="adv-index">{advantage.index}</span>
-                    <h3>{advantage.title}</h3>
-                    <p>{advantage.description}</p>
-                  </article>
-                ))}
-              </Carousel>
-            </div>
           </div>
         </section>
 
@@ -186,148 +101,87 @@ export default function HomePage() {
           <div className="container">
             <div className="section-head">
               <div data-reveal>
-                <p className="eyebrow">O que executamos</p>
-                <h2 id="servicos-title">
-                  Seis frentes,
-                  <br />
-                  um só acabamento.
-                </h2>
+                <h2 id="servicos-title">Seis sistemas a seco, um só acabamento.</h2>
               </div>
               <div className="head-note" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
                 <p>
-                  Instalação, reforma e manutenção em sistemas a seco. Também
-                  fazemos reparo pontual, troca de placas e revisão de forro já
-                  instalado, sem obra no restante do imóvel.
+                  Instalação, reforma e manutenção em paredes, forros e pisos,
+                  para imóveis residenciais e comerciais.
                 </p>
                 <Link className="head-link" href="/servicos">
-                  Falar com um especialista
+                  Ver materiais e detalhes
                   <Icon name="arrow-right" size={15} className="icon-arrow" />
                 </Link>
-                <a className="head-phone" href={site.phone.href}>
-                  <Icon name="phone" size={15} />
-                  Ligar agora: {site.phone.display}
-                </a>
               </div>
             </div>
 
+            <ul className="service-grid" data-reveal>
+              {services.map((service) => (
+                <li key={service.id}>
+                  <Link className="service-tile" href={`/servicos#${service.id}`}>
+                    <span className="plate">
+                      <Image
+                        src={service.image}
+                        alt={service.alt}
+                        fill
+                        sizes="(max-width: 720px) 90vw, (max-width: 980px) 45vw, 420px"
+                      />
+                    </span>
+                    <span className="tile-category">{service.category}</span>
+                    <h3>{service.title}</h3>
+                    <p>{service.homeDescription}</p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="maintenance-band" id="manutencao" aria-labelledby="manutencao-title">
+          <div className="container maintenance-inner">
             <div data-reveal>
-              <Carousel label="Serviços executados">
-                {services.map((service) => (
-                  <Link
-                    className="service-card"
-                    key={service.id}
-                    href={`/servicos#${service.id}`}
-                  >
-                  <span className="plate">
-                    <Image
-                      src={service.image}
-                      alt={service.alt}
-                      fill
-                      sizes="(max-width: 720px) 90vw, (max-width: 980px) 45vw, 421px"
-                    />
-                  </span>
-                  <span className="service-caption">
-                    <span className="index">{service.index}</span>
-                    <span className="category">{service.category}</span>
-                  </span>
-                  <h3>{service.title}</h3>
-                  <p>{service.homeDescription}</p>
-                </Link>
-                ))}
-              </Carousel>
+              <h2 id="manutencao-title">Manutenção do que já está instalado.</h2>
+              <p>{maintenance.homeDescription}</p>
+            </div>
+            <div className="maintenance-actions" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
+              <a
+                className="btn btn-dark btn-md"
+                href={maintenanceWhatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icon name="message-circle" size={16} />
+                Chamar no WhatsApp
+              </a>
+              <Link className="head-link" href="/servicos#manutencao">
+                Ver o que fazemos
+                <Icon name="arrow-right" size={15} className="icon-arrow" />
+              </Link>
             </div>
           </div>
         </section>
 
-        <section className="rc" id="obras" aria-labelledby="obras-title">
-          <div className="container">
-            <div className="rc-head">
-              <div data-reveal>
-                <p className="eyebrow">Residencial · Comercial</p>
-                <h2 id="obras-title">
-                  Casa ou empresa,
-                  <br />
-                  o mesmo método de obra.
-                </h2>
-              </div>
-              <div className="rc-note" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
-                <p>
-                  Ambiente em uso pede obra limpa: executamos por etapas, com
-                  proteção de piso e móveis, ruído controlado e limpeza ao final
-                  de cada dia.
-                </p>
-                <a
-                  className="rc-wa"
-                  href={site.whatsapp.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Icon name="message-circle" size={15} />
-                  WhatsApp: {site.whatsapp.display}
-                </a>
-              </div>
+        <section className="why" id="obra-a-seco" aria-labelledby="why-title">
+          <div className="container why-grid">
+            <div data-reveal>
+              <h2 id="why-title">Obra que não interrompe a rotina.</h2>
             </div>
-
-            <div className="rc-grid">
-              <article className="rc-card" data-reveal>
-                <div className="plate">
-                  <Image
-                    src="/images/residencial-bh.webp"
-                    alt="Sala de estar residencial com forro de gesso e piso vinílico"
-                    fill
-                    sizes="(max-width: 980px) 90vw, 648px"
-                  />
-                </div>
-                <div className="rc-caption">
-                  <span>Residencial</span>
-                  <Icon name="arrow-up-right" size={18} />
-                </div>
-                <h3>Casas e apartamentos</h3>
-                <p>
-                  Divisórias para novos ambientes, forro de gesso com luz
-                  indireta, PVC nas áreas molhadas e piso vinílico sobre o piso
-                  atual — sem sair de casa durante a obra.
-                </p>
-              </article>
-
-              <article className="rc-card" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
-                <div className="plate">
-                  <Image
-                    src="/images/comercial-bh.webp"
-                    alt="Escritório corporativo com divisórias de vidro e piso modular"
-                    fill
-                    sizes="(max-width: 980px) 90vw, 648px"
-                  />
-                </div>
-                <div className="rc-caption">
-                  <span>Comercial</span>
-                  <Icon name="arrow-up-right" size={18} />
-                </div>
-                <h3>Lojas, escritórios e clínicas</h3>
-                <p>
-                  Divisórias acústicas entre salas, forro modular com
-                  infraestrutura acessível, piso elevado e manutenção em loja
-                  aberta.
-                </p>
-              </article>
-            </div>
+            <ul className="why-list" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
+              {advantages.map((advantage) => (
+                <li key={advantage.index}>
+                  <strong>{advantage.title}</strong>
+                  <span>{advantage.description}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
-        <section
-          className="process"
-          id="como-funciona"
-          aria-labelledby="processo-title"
-        >
+        <section className="process" id="como-funciona" aria-labelledby="processo-title">
           <div className="container">
-            <div className="section-head">
-              <div data-reveal>
-                <p className="eyebrow">Como funciona</p>
-                <h2 id="processo-title">
-                  Do orçamento à entrega, em quatro etapas.
-                </h2>
-              </div>
-            </div>
+            <h2 id="processo-title" data-reveal>
+              Do pedido à entrega, em três etapas.
+            </h2>
 
             <div className="process-grid">
               {processSteps.map((step, index) => (
@@ -350,106 +204,32 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="contact-band" id="contato" aria-labelledby="contato-title">
-          <div className="container contact-inner">
-            <div className="contact-copy" data-reveal>
-              <p className="eyebrow">Telefone e WhatsApp · Seg a sáb</p>
-              <h2 className="contact-phone" id="contato-title">
-                {site.phone.display}
+        <section className="final-cta" id="contato" aria-labelledby="contato-title">
+          <div className="container final-inner">
+            <div data-reveal>
+              <h2 id="contato-title">
+                Conte o ambiente. Devolvemos sistema, prazo e valor.
               </h2>
+              <p>
+                Três minutos no formulário. A proposta chega em até 1 dia útil,
+                com visita de medição sem custo em BH.
+              </p>
             </div>
-            <div className="contact-actions" data-reveal style={{ "--reveal-delay": "70ms" } as CSSProperties}>
+            <div className="final-actions" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
+              <Link className="btn btn-light btn-md" href="/orcamento">
+                Fazer orçamento online
+                <Icon name="arrow-right" size={16} className="icon-arrow" />
+              </Link>
               <a
-                className="btn btn-dark"
+                className="btn btn-outline-light btn-md"
                 href={site.whatsapp.href}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Icon name="message-circle" size={15} />
-                Chamar no WhatsApp
-              </a>
-              <a className="btn btn-outline" href={site.phone.href}>
-                <Icon name="phone" size={15} />
-                Ligar agora
+                <Icon name="message-circle" size={16} />
+                WhatsApp {site.whatsapp.display}
               </a>
             </div>
-          </div>
-        </section>
-
-        <section className="quote-cta" aria-labelledby="orcamento-title">
-          <div className="container quote-grid">
-            <div data-reveal>
-              <p className="eyebrow">Orçamento online</p>
-              <h2 id="orcamento-title">
-                Conte o ambiente. Devolvemos sistema, prazo e valor.
-              </h2>
-              <p className="quote-desc">
-                Três minutos para explicar o que você precisa. Você escolhe os
-                serviços, informa as medidas aproximadas e anexa fotos — a
-                proposta volta com material, mão de obra e cronograma.
-              </p>
-              <ul className="checks">
-                <li>
-                  <Icon name="check" size={16} />
-                  Resposta em até 1 dia útil
-                </li>
-                <li>
-                  <Icon name="check" size={16} />
-                  Visita de medição sem custo em BH
-                </li>
-                <li>
-                  <Icon name="check" size={16} />
-                  Sistema a seco definido por ambiente
-                </li>
-                <li>
-                  <Icon name="check" size={16} />
-                  Proposta com material, mão de obra e prazo
-                </li>
-              </ul>
-              <Link className="btn btn-dark btn-md" href="/orcamento">
-                Receber meu orçamento
-                <Icon name="arrow-right" size={16} className="icon-arrow" />
-              </Link>
-            </div>
-
-            <Link
-              className="quote-preview"
-              href="/orcamento"
-              aria-label="Abrir o formulário de orçamento online"
-              data-reveal
-              style={{ "--reveal-delay": "90ms" } as CSSProperties}
-            >
-              <div aria-hidden="true">
-                <div className="preview-top">
-                  <span className="step-label">PASSO 1 DE 2</span>
-                  <span className="time">~3 min</span>
-                </div>
-                <div className="preview-progress">
-                  <span />
-                </div>
-                <h3>O que você precisa?</h3>
-                <div className="preview-chips">
-                  <span className="preview-chip is-selected">
-                    Divisórias em drywall
-                  </span>
-                  <span className="preview-chip">Forro de PVC</span>
-                  <span className="preview-chip is-selected">
-                    Forro modular
-                  </span>
-                  <span className="preview-chip">Placa de gesso</span>
-                  <span className="preview-chip">Piso modular</span>
-                  <span className="preview-chip">Piso vinílico</span>
-                </div>
-                <p className="preview-label">Tipo de imóvel</p>
-                <div className="preview-segment">
-                  <span className="is-selected">Residencial</span>
-                  <span>Comercial</span>
-                </div>
-                <div className="preview-continue">
-                  <span className="btn btn-accent">Continuar</span>
-                </div>
-              </div>
-            </Link>
           </div>
         </section>
       </main>

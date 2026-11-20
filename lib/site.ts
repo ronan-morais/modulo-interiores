@@ -3,7 +3,7 @@ export const site = {
   shortName: "Módulo",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://modulointeriores.com.br",
   description:
-    "Construção a seco em Belo Horizonte: drywall, forros de PVC, modular e gesso, piso modular e vinílico. Obra sem quebra-quebra, com prazo curto e imóvel em uso.",
+    "Instalação e manutenção a seco em Belo Horizonte: drywall, forros de PVC, modular e gesso, piso modular e vinílico. Obra sem quebra-quebra, com prazo curto e imóvel em uso.",
   phone: {
     display: "(31) 99740-8629",
     href: "tel:+5531997408629",
@@ -60,7 +60,7 @@ export const services: Service[] = [
     category: "Divisórias",
     title: "Paredes e divisórias em drywall",
     homeDescription:
-      "Estrutura metálica, isolamento acústico e acabamento em gesso liso. Parede nova sem levantar alvenaria.",
+      "Parede nova sem alvenaria, com isolamento acústico e acabamento pronto para pintura.",
     pageDescription:
       "Estrutura metálica com montantes reforçados, isolamento em lã de vidro e fechamento em placas. A parede nasce pronta para pintura, com portas, batentes e rodapé no mesmo acabamento — sem demolição, sem argamassa e sem entulho dentro de casa.",
     lead: "Ambiente novo no lugar de uma parede que não existia, em poucos dias.",
@@ -78,7 +78,7 @@ export const services: Service[] = [
     category: "Forro",
     title: "Forro de PVC",
     homeDescription:
-      "Placas laváveis e resistentes à umidade para cozinhas, banheiros, varandas e áreas de serviço.",
+      "Lavável e resistente à umidade, instalado sem quebrar o revestimento.",
     pageDescription:
       "Placas de PVC com perfis aparentes ou ocultos, resistentes à umidade e fáceis de lavar. Instalação seca sobre a laje existente, sem quebrar revestimento nem tirar o ambiente de uso por muito tempo.",
     lead: "Área molhada resolvida sem quebra de alvenaria.",
@@ -96,7 +96,7 @@ export const services: Service[] = [
     category: "Forro",
     title: "Forro modular",
     homeDescription:
-      "Placas removíveis com malha de sustentação. Ideal para escritórios, lojas e manutenção sem obra.",
+      "Placas removíveis com acesso à infraestrutura elétrica e hidráulica.",
     pageDescription:
       "Malha de sustentação oculta com placas removíveis, permitindo acesso à infraestrutura elétrica e hidráulica sem obra. Muito usado em escritórios, lojas e clínicas que não podem parar.",
     lead: "Manutenção simples, com a operação rodando.",
@@ -114,7 +114,7 @@ export const services: Service[] = [
     category: "Forro",
     title: "Forro em placa de gesso",
     homeDescription:
-      "Sancas, rebaixos e iluminação embutida desenhados sob medida para cada ambiente.",
+      "Sancas, rebaixos e luz embutida desenhados para cada ambiente.",
     pageDescription:
       "Sancas, rebaixos, cortineiros e iluminação indireta desenhados sob medida, montados em estrutura seca sob a laje. Acabamento em gesso liso ou massa corrida, sem emendas aparentes.",
     lead: "Desenho de luz que valoriza cada ambiente.",
@@ -132,7 +132,7 @@ export const services: Service[] = [
     category: "Piso",
     title: "Piso modular",
     homeDescription:
-      "Placas elevadas de alta resistência para salas técnicas, lojas, auditórios e escritórios.",
+      "Piso elevado com acesso ao cabeamento, instalado sem parar a operação.",
     pageDescription:
       "Placas elevadas de alta resistência sobre pedestais, com acesso rápido ao piso técnico. Para salas de servidores, lojas, auditórios e áreas com cabeamento — instalado sem parar a operação.",
     lead: "Piso técnico com acesso imediato à infraestrutura.",
@@ -150,7 +150,7 @@ export const services: Service[] = [
     category: "Piso",
     title: "Piso vinílico",
     homeDescription:
-      "Régua ou manta, conforto acústico e instalação sobre piso existente, sem retirar o revestimento antigo.",
+      "Aplicado sobre o piso atual, com conforto acústico e limpeza fácil.",
     pageDescription:
       "Régua, manta ou placa adesiva, em camadas de uso residencial e comercial. Aplicado sobre o piso existente: sem quebra-quebra, sem entulho e com o ambiente de volta no mesmo dia.",
     lead: "Acabamento quente, silencioso e resistente.",
@@ -164,6 +164,31 @@ export const services: Service[] = [
   },
 ];
 
+export const maintenance = {
+  id: "manutencao",
+  index: "07",
+  category: "Manutenção",
+  title: "Manutenção e reparo",
+  homeDescription:
+    "Reparo pontual, troca de placas e revisão de acabamento em paredes, forros e pisos, sem obra no restante do imóvel.",
+  pageDescription:
+    "Reparo pontual, troca de placas e revisão de acabamento em paredes, forros e pisos já instalados. A intervenção fica restrita ao ponto danificado, sem demolição e sem parar o imóvel inteiro.",
+  bullets: [
+    "Reparo pontual em placas e emendas",
+    "Troca de placas de forro e parede",
+    "Revisão de forro já instalado",
+  ],
+} as const;
+
+export const maintenanceWhatsappHref = `${site.whatsapp.href}?text=${encodeURIComponent(
+  "Olá! Preciso de manutenção em parede, forro ou piso.",
+)}`;
+
+export const quoteOptions = [
+  ...services.map(({ id, index, title }) => ({ id, index, title })),
+  { id: maintenance.id, index: maintenance.index, title: maintenance.title },
+];
+
 export type Advantage = {
   index: string;
   title: string;
@@ -173,46 +198,26 @@ export type Advantage = {
 export const advantages: Advantage[] = [
   {
     index: "01",
-    title: "Sem quebra-quebra",
+    title: "Sem demolição",
     description:
-      "Nada de demolir alvenaria para abrir parede ou passagem. O sistema chega em perfis, placas e painéis — e o entulho não entra na sua casa.",
+      "Perfis, placas e painéis chegam prontos. Nada de quebrar alvenaria ou carregar entulho pela casa.",
   },
   {
     index: "02",
-    title: "Prazo curto e previsível",
+    title: "Prazo previsível",
     description:
-      "Etapa seca não espera cura de cimento nem secagem de argamassa. Menos dias de obra e menos surpresa no cronograma.",
+      "A etapa seca não espera cura de cimento nem secagem de argamassa.",
   },
   {
     index: "03",
-    title: "Imóvel em uso durante a obra",
+    title: "Imóvel em uso",
     description:
-      "Casa ou loja continuam funcionando: trabalhamos por etapas, protegemos piso e móveis e limpamos ao fim de cada dia.",
-  },
-  {
-    index: "04",
-    title: "Menos umidade e mofo",
-    description:
-      "Não entra água na mistura. Em cozinha, banheiro e área de serviço, PVC e placas específicas resistem à umidade.",
-  },
-  {
-    index: "05",
-    title: "Infraestrutura acessível",
-    description:
-      "Elétrica e hidráulica correm por dentro de paredes e forros. Forro modular e piso elevado dão acesso aos pontos sem quebrar acabamento.",
-  },
-  {
-    index: "06",
-    title: "Conforto acústico e térmico",
-    description:
-      "A lã mineral entre as placas reduz o ruído entre ambientes e ajuda a estabilizar a temperatura dos cômodos.",
+      "Obra por etapas, com piso e móveis protegidos e limpeza ao fim de cada dia.",
   },
 ];
 
 export const navLinks = [
   { label: "Serviços", href: "/servicos" },
-  { label: "Obras", href: "/#obras" },
   { label: "Como funciona", href: "/#como-funciona" },
-  { label: "Sobre", href: "/#sobre" },
   { label: "Contato", href: "/#contato" },
 ];

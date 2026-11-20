@@ -10,6 +10,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+  serverExternalPackages: ["@libsql/client"],
   images: {
     formats: ["image/avif", "image/webp"],
   },

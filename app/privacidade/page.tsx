@@ -41,8 +41,8 @@ export default function PrivacidadePage() {
               <p>
                 No formulário de orçamento online podem ser informados: nome,
                 WhatsApp, e-mail, tipo de imóvel, serviços de interesse, área
-                aproximada, número de ambientes, cidade, bairro, prazo desejado,
-                detalhes do ambiente e fotos ou plantas anexadas.
+                total aproximada, número de ambientes, cidade, bairro, prazo
+                desejado, detalhes do ambiente e fotos ou plantas anexadas.
               </p>
 
               <h2>Como os dados são usados</h2>
@@ -54,18 +54,18 @@ export default function PrivacidadePage() {
 
               <h2>Onde os dados ficam</h2>
               <p>
-                O formulário não envia dados para um servidor deste site. O
-                resumo do pedido é montado no seu navegador e enviado por você
-                mesmo pelo WhatsApp ou e-mail. O rascunho do formulário pode ser
-                salvo no armazenamento local do navegador ao usar a opção
-                &quot;Salvar rascunho&quot;, e permanece apenas no seu
-                dispositivo.
+                Ao concluir o pedido, os dados informados são gravados em um
+                banco de dados do site, hospedado no Turso (banco libSQL), para
+                organizar o atendimento e o histórico da obra. O mesmo resumo é
+                montado no seu navegador e aberto por você no WhatsApp ou no
+                e-mail; o conteúdo enviado por essas conversas também fica
+                sujeito às políticas do WhatsApp e do provedor de e-mail.
               </p>
               <p>
-                Ao concluir o envio, os dados passam a constar na conversa de
-                WhatsApp ou no e-mail utilizado, sujeitos também às políticas
-                desses serviços. Não vendemos nem compartilhamos dados com
-                terceiros para publicidade.
+                O rascunho do formulário pode ser salvo no armazenamento local
+                do navegador ao usar a opção &quot;Salvar rascunho&quot;, e
+                permanece apenas no seu dispositivo. Não vendemos nem
+                compartilhamos dados com terceiros para publicidade.
               </p>
 
               <h2>Cookies e analytics</h2>
@@ -86,7 +86,7 @@ export default function PrivacidadePage() {
               <p>
                 Esta política pode ser revisada para refletir mudanças no
                 atendimento ou na legislação. Última atualização: novembro de
-                2025.
+                2026.
               </p>
             </article>
           </div>

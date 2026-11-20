@@ -26,6 +26,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# banco local de desenvolvimento (Turso)
+/.data/
+
 # typescript
 *.tsbuildinfo
 

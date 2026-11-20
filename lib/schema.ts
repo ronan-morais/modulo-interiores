@@ -1,4 +1,6 @@
-import { services, site } from "@/lib/site";
+import { maintenance, services, site } from "@/lib/site";
+
+const serviceCatalog = [...services, maintenance];
 
 const businessId = `${site.url}/#business`;
 const websiteId = `${site.url}/#website`;
@@ -47,7 +49,7 @@ export function businessSchema() {
         hasOfferCatalog: {
           "@type": "OfferCatalog",
           name: "Serviços de drywall, forros e pisos",
-          itemListElement: services.map((service) => ({
+          itemListElement: serviceCatalog.map((service) => ({
             "@type": "Offer",
             itemOffered: {
               "@type": "Service",
@@ -95,7 +97,7 @@ export function serviceListSchema() {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "Serviços da Módulo Interiores",
-    itemListElement: services.map((service, index) => ({
+    itemListElement: serviceCatalog.map((service, index) => ({
       "@type": "ListItem",
       position: index + 1,
       item: {

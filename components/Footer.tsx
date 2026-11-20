@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { BrandMark } from "@/components/Brand";
 import { Icon } from "@/components/Icon";
-import { services, site } from "@/lib/site";
+import { services, site, maintenance } from "@/lib/site";
 
 const legalLinks = [
   { label: "Política de privacidade", href: "/privacidade" },
-  { label: "Orçamento online", href: "/orcamento" },
   { label: "Trabalhe com a gente", href: `mailto:${site.email}?subject=Trabalhe%20com%20a%20gente` },
 ];
 
@@ -23,40 +22,10 @@ export function Footer() {
               </span>
             </Link>
             <p>
-              Instalação e manutenção de drywall, forros e pisos em Belo
-              Horizonte e região metropolitana. Atendimento residencial e
-              comercial.
+              Drywall, forros e pisos em Belo Horizonte e região metropolitana.
+              Obra a seco, residencial e comercial, com equipe própria.
             </p>
-          </div>
-
-          <nav className="footer-column" aria-label="Serviços">
-            <h2>SERVIÇOS</h2>
-            <ul>
-              {services.map((service) => (
-                <li key={service.id}>
-                  <Link href={`/servicos#${service.id}`}>{service.title}</Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div className="footer-column">
-            <h2>ATENDIMENTO</h2>
-            <ul>
-              <li>Belo Horizonte</li>
-              <li>Contagem · Betim</li>
-              <li>Nova Lima · Sabará</li>
-              {site.openingHours.map((item) => (
-                <li key={item.days}>
-                  {item.days}, {item.hours}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="footer-column footer-contact">
-            <h2>CONTATO</h2>
-            <ul>
+            <ul className="footer-contacts">
               <li>
                 <Icon name="phone" size={14} />
                 <a href={site.phone.href}>{site.phone.display}</a>
@@ -64,7 +33,7 @@ export function Footer() {
               <li>
                 <Icon name="message-circle" size={14} />
                 <a href={site.whatsapp.href} target="_blank" rel="noopener noreferrer">
-                  {site.whatsapp.display}
+                  WhatsApp
                 </a>
               </li>
               <li>
@@ -77,8 +46,34 @@ export function Footer() {
                   {site.instagram}
                 </a>
               </li>
+            </ul>
+          </div>
+
+          <nav className="footer-column" aria-label="Serviços">
+            <h2>SERVIÇOS</h2>
+            <ul>
+              {services.map((service) => (
+                <li key={service.id}>
+                  <Link href={`/servicos#${service.id}`}>{service.title}</Link>
+                </li>
+              ))}
               <li>
-                <Icon name="map-pin" size={14} />
+                <Link href={`/servicos#${maintenance.id}`}>{maintenance.title}</Link>
+              </li>
+            </ul>
+          </nav>
+
+          <div className="footer-column">
+            <h2>ATENDIMENTO</h2>
+            <ul>
+              <li>{site.areasServed.slice(0, 3).join(" · ")}</li>
+              <li>{site.areasServed.slice(3).join(" · ")}</li>
+              {site.openingHours.map((item) => (
+                <li key={item.days}>
+                  {item.days}, {item.hours}
+                </li>
+              ))}
+              <li>
                 <address>
                   {site.address.street} · {site.address.district}, {site.address.city}
                 </address>

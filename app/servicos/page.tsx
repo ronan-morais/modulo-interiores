@@ -8,12 +8,12 @@ import { Icon } from "@/components/Icon";
 import { JsonLd } from "@/components/JsonLd";
 import { pageMetadata } from "@/lib/metadata";
 import { breadcrumbSchema, serviceListSchema } from "@/lib/schema";
-import { services, site } from "@/lib/site";
+import { maintenance, maintenanceWhatsappHref, services, site } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
   title: "Serviços de drywall, forros e pisos em BH",
   description:
-    "Paredes e divisórias em drywall, forro de PVC, modular e gesso, piso modular e vinílico em BH. Obra residencial e comercial com equipe própria.",
+    "Instalação e manutenção de paredes em drywall, forro de PVC, modular e gesso, piso modular e vinílico em BH. Obra residencial e comercial com equipe própria.",
   path: "/servicos",
 });
 
@@ -35,9 +35,8 @@ export default function ServicosPage() {
               </h1>
               <p className="page-intro-note">
                 Tudo em obra a seco: perfis, placas, painéis e piso aplicado
-                sobre o contrapiso existente. Obra nova, reforma e reparo
-                pontual em BH, com equipe própria e material de linha
-                profissional.
+                sobre o contrapiso existente. Obra nova, reforma e manutenção
+                em BH, com equipe própria e material de linha profissional.
               </p>
             </div>
           </div>
@@ -79,6 +78,44 @@ export default function ServicosPage() {
                 </div>
               </article>
             ))}
+
+            <article className="service-block" id="manutencao">
+              <div className="service-copy" data-reveal>
+                <div className="service-index">
+                  <span className="num">{maintenance.index}</span>
+                  <span className="cat">{maintenance.category}</span>
+                </div>
+                <h2>{maintenance.title}</h2>
+                <p className="desc">{maintenance.pageDescription}</p>
+                <p className="lead">Reparo sem obra no restante do imóvel.</p>
+                <ul className="service-bullets">
+                  {maintenance.bullets.map((bullet) => (
+                    <li key={bullet}>
+                      <Icon name="check" size={15} />
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  className="btn btn-dark btn-md maintenance-cta"
+                  href={maintenanceWhatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Icon name="message-circle" size={16} />
+                  Chamar no WhatsApp
+                </a>
+              </div>
+
+              <div className="service-plate" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
+                <Image
+                  src="/images/residencial-bh.webp"
+                  alt="Sala de estar com forro de gesso e piso vinílico instalados"
+                  fill
+                  sizes="(max-width: 980px) 92vw, 832px"
+                />
+              </div>
+            </article>
           </div>
         </div>
 
@@ -92,7 +129,7 @@ export default function ServicosPage() {
               </h2>
               <p className="services-cta-note">
                 Visita técnica sem custo em Belo Horizonte e região. Você recebe
-                o sistema a seco com melhor custo, prazo e manutenção para cada
+                o sistema a seco com melhor custo, prazo e acabamento para cada
                 ambiente.
               </p>
             </div>
