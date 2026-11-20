@@ -56,10 +56,8 @@ export default function PrivacidadePage() {
               <p>
                 Ao concluir o pedido, os dados informados são gravados em um
                 banco de dados do site, hospedado no Turso (banco libSQL), para
-                organizar o atendimento e o histórico da obra. O mesmo resumo é
-                montado no seu navegador e aberto por você no WhatsApp ou no
-                e-mail; o conteúdo enviado por essas conversas também fica
-                sujeito às políticas do WhatsApp e do provedor de e-mail.
+                organizar o atendimento e o histórico da obra. A equipe usa o
+                WhatsApp ou o e-mail informados para responder à solicitação.
               </p>
               <p>
                 O rascunho do formulário pode ser salvo no armazenamento local

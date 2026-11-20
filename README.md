@@ -28,7 +28,7 @@ Site institucional de uma empresa de drywall, forros e pisos em Belo Horizonte, 
 
 ## Banco de dados (Turso)
 
-O formulário de `/orcamento` grava cada pedido na tabela `orcamentos` (Turso/libSQL) pela rota `POST /api/orcamentos`, logo depois de abrir o WhatsApp. A tabela e o índice são criados na primeira gravação por `lib/db.ts`; não há passo de migração.
+O formulário de `/orcamento` grava cada pedido na tabela `orcamentos` (Turso/libSQL) pela rota `POST /api/orcamentos`; o envio é a própria gravação, sem abrir WhatsApp ou e-mail. A tabela e o índice são criados na primeira gravação por `lib/db.ts`; não há passo de migração.
 
 Variáveis de ambiente (Vercel → Settings → Environment Variables, ou integração Turso):
 
@@ -49,7 +49,7 @@ Conferir os pedidos recebidos:
 turso db shell modulo-interiores "select id, criado_em, nome, whatsapp, tipo_imovel, area_m2, ambientes, servicos from orcamentos order by id desc limit 20"
 ```
 
-Se a gravação falhar, o WhatsApp ainda abre com o pedido e a tela avisa que o registro não foi concluído — o lead não se perde.
+Se a gravação falhar, o formulário permanece na tela com a mensagem de erro e o pedido pode ser reenviado.
 
 ## CRM (/crm)
 
@@ -103,4 +103,4 @@ npx vercel --prod
 
 ## Conteúdo e contato
 
-Os dados de contato (telefone e WhatsApp: (31) 99740-8629), cidades atendidas e os seis serviços ficam em `lib/site.ts`, junto com a lista `advantages` da seção "Por que obra a seco" e o objeto `maintenance` (a sétima oferta, também disponível no formulário de orçamento via `quoteOptions`). O formulário de orçamento monta a mensagem no navegador e abre o WhatsApp; o rascunho é salvo em `localStorage`. Cada pedido também é gravado no Turso por `POST /api/orcamentos` (ver seção acima). As fotos não são enviadas ao servidor — são anexadas na conversa do WhatsApp.
+Os dados de contato (telefone e WhatsApp: (31) 99740-8629), cidades atendidas e os seis serviços ficam em `lib/site.ts`, junto com a lista `advantages` da seção "Por que obra a seco" e o objeto `maintenance` (a sétima oferta, também disponível no formulário de orçamento via `quoteOptions`). O formulário de orçamento envia os dados para `POST /api/orcamentos` e a equipe responde pelo WhatsApp ou e-mail informado; o rascunho é salvo em `localStorage`. As fotos não são enviadas ao servidor — o contato informado serve para combinar o envio.

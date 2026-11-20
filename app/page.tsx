@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Carousel } from "@/components/Carousel";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Icon } from "@/components/Icon";
@@ -115,25 +116,29 @@ export default function HomePage() {
               </div>
             </div>
 
-            <ul className="service-grid" data-reveal>
-              {services.map((service) => (
-                <li key={service.id}>
-                  <Link className="service-tile" href={`/servicos#${service.id}`}>
+            <div data-reveal>
+              <Carousel label="Serviços executados">
+                {services.map((service) => (
+                  <Link
+                    className="service-tile"
+                    key={service.id}
+                    href={`/servicos#${service.id}`}
+                  >
                     <span className="plate">
                       <Image
                         src={service.image}
                         alt={service.alt}
                         fill
-                        sizes="(max-width: 720px) 90vw, (max-width: 980px) 45vw, 420px"
+                        sizes="(max-width: 720px) 84vw, (max-width: 980px) 45vw, 420px"
                       />
                     </span>
                     <span className="tile-category">{service.category}</span>
                     <h3>{service.title}</h3>
                     <p>{service.homeDescription}</p>
                   </Link>
-                </li>
-              ))}
-            </ul>
+                ))}
+              </Carousel>
+            </div>
           </div>
         </section>
 
@@ -162,18 +167,21 @@ export default function HomePage() {
         </section>
 
         <section className="why" id="obra-a-seco" aria-labelledby="why-title">
-          <div className="container why-grid">
-            <div data-reveal>
+          <div className="container">
+            <div className="why-head" data-reveal>
               <h2 id="why-title">Obra que não interrompe a rotina.</h2>
             </div>
-            <ul className="why-list" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
-              {advantages.map((advantage) => (
-                <li key={advantage.index}>
-                  <strong>{advantage.title}</strong>
-                  <span>{advantage.description}</span>
-                </li>
-              ))}
-            </ul>
+
+            <div data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
+              <Carousel label="Diferenciais da obra a seco">
+                {advantages.map((advantage) => (
+                  <article className="why-card" key={advantage.index}>
+                    <strong>{advantage.title}</strong>
+                    <p>{advantage.description}</p>
+                  </article>
+                ))}
+              </Carousel>
+            </div>
           </div>
         </section>
 
@@ -183,23 +191,16 @@ export default function HomePage() {
               Do pedido à entrega, em três etapas.
             </h2>
 
-            <div className="process-grid">
-              {processSteps.map((step, index) => (
-                <div
-                  className="step"
-                  key={step.index}
-                  data-reveal
-                  style={
-                    {
-                      "--reveal-delay": `${index * 70}ms`,
-                    } as CSSProperties
-                  }
-                >
-                  <span className="index">{step.index}</span>
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
-                </div>
-              ))}
+            <div data-reveal>
+              <Carousel label="Etapas do atendimento">
+                {processSteps.map((step) => (
+                  <div className="step" key={step.index}>
+                    <span className="index">{step.index}</span>
+                    <h3>{step.title}</h3>
+                    <p>{step.description}</p>
+                  </div>
+                ))}
+              </Carousel>
             </div>
           </div>
         </section>

@@ -39,9 +39,9 @@ export default function OrcamentoPage() {
         <div className="container quote-intro" data-reveal>
           <h1>Vamos dimensionar a sua obra.</h1>
           <p>
-            Dois passos, cerca de três minutos. Ao final você envia o pedido
-            pelo WhatsApp e recebe uma proposta com sistema construtivo, escopo,
-            material e prazo — sem visita obrigatória.
+            Dois passos, cerca de três minutos. Ao final, o pedido fica
+            registrado com a equipe e você recebe uma proposta com sistema
+            construtivo, escopo, material e prazo — sem visita obrigatória.
           </p>
         </div>
 

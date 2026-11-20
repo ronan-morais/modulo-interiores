@@ -59,9 +59,7 @@ export function QuoteForm() {
   const [form, setForm] = useState<FormState>(initialState);
   const [error, setError] = useState("");
   const [draftSaved, setDraftSaved] = useState(false);
-  const [saveState, setSaveState] = useState<
-    "idle" | "saving" | "saved" | "error"
-  >("idle");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     try {
@@ -94,33 +92,6 @@ export function QuoteForm() {
         .map((service) => service.title),
     [form.selected],
   );
-
-  const message = useMemo(() => {
-    const lines = [
-      "Olá! Quero um orçamento com a Módulo Interiores.",
-      "",
-      `Serviços: ${selectedTitles.join(", ") || "a definir"}`,
-      `Tipo de imóvel: ${form.property}`,
-      form.area ? `Área total aproximada: ${form.area} m²` : "",
-      form.rooms ? `Nº de ambientes: ${form.rooms}` : "",
-      `Cidade: ${form.city}${form.district ? ` · ${form.district}` : ""}`,
-      `Quando pretende executar: ${form.timeline}`,
-      form.details ? `Detalhes: ${form.details}` : "",
-      form.fileName
-        ? `Fotos/planta: ${form.fileName} (envio em seguida)`
-        : "",
-      "",
-      `Nome: ${form.name}`,
-      form.phone ? `WhatsApp: ${form.phone}` : "",
-      form.email ? `E-mail: ${form.email}` : "",
-    ];
-    return lines.filter(Boolean).join("\n");
-  }, [form, selectedTitles]);
-
-  const whatsappUrl = `https://wa.me/${site.whatsapp.number}?text=${encodeURIComponent(message)}`;
-  const mailtoUrl = `mailto:${site.email}?subject=${encodeURIComponent(
-    "Orçamento online — Módulo Interiores",
-  )}&body=${encodeURIComponent(message)}`;
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -156,8 +127,7 @@ export function QuoteForm() {
     setStep(2);
   }
 
-  async function saveLead() {
-    setSaveState("saving");
+  async function saveLead(): Promise<boolean> {
     try {
       const response = await fetch("/api/orcamentos", {
         method: "POST",
@@ -178,13 +148,13 @@ export function QuoteForm() {
           consent: form.consent,
         }),
       });
-      setSaveState(response.ok ? "saved" : "error");
+      return response.ok;
     } catch {
-      setSaveState("error");
+      return false;
     }
   }
 
-  function submitRequest(event: React.FormEvent<HTMLFormElement>) {
+  async function submitRequest(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.name.trim()) {
       setError("Informe seu nome para que a equipe possa responder.");
@@ -198,27 +168,30 @@ export function QuoteForm() {
       setError("Confirme o uso dos dados para envio do orçamento.");
       return;
     }
+
     setError("");
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    setSubmitting(true);
+    const saved = await saveLead();
+    setSubmitting(false);
+
+    if (!saved) {
+      setError(
+        "Não conseguimos registrar o pedido agora. Tente novamente em instantes.",
+      );
+      return;
+    }
+
     setStep(3);
-    void saveLead();
   }
 
   function resetForm() {
     setForm(initialState);
     setStep(1);
     setError("");
-    setSaveState("idle");
+    setSubmitting(false);
   }
 
   const progress = step === 1 ? "50%" : "100%";
-
-  const successTitle =
-    saveState === "error"
-      ? "Pedido pronto para envio"
-      : saveState === "saved"
-        ? "Pedido enviado"
-        : "Registrando pedido";
 
   return (
     <div className="container quote-layout">
@@ -287,7 +260,7 @@ export function QuoteForm() {
                 ? "O que você precisa?"
                 : step === 2
                   ? "Como podemos falar com você?"
-                  : successTitle}
+                  : "Pedido registrado"}
             </h2>
           </div>
           <p className="time-estimate">
@@ -304,30 +277,16 @@ export function QuoteForm() {
             <span className="success-icon">
               <Icon name="check" size={28} />
             </span>
-            <p aria-live="polite">
-              {saveState === "error"
-                ? "Não foi possível registrar o pedido no sistema agora, mas o WhatsApp foi aberto com todos os dados."
-                : saveState === "saved"
-                  ? "Pedido registrado. O WhatsApp foi aberto com o resumo."
-                  : "Registrando o pedido…"}{" "}
-              Se a janela do WhatsApp não abriu, use um dos botões abaixo e
-              anexe as fotos na conversa.
+            <p role="status">
+              Recebemos seu pedido. A equipe responde pelo WhatsApp ou e-mail
+              informado em até 1 dia útil.
             </p>
             <div className="success-actions">
-              <a
-                className="btn btn-accent btn-md"
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                className="btn btn-outline btn-md"
+                type="button"
+                onClick={resetForm}
               >
-                <Icon name="message-circle" size={16} />
-                Abrir WhatsApp
-              </a>
-              <a className="btn btn-outline btn-md" href={mailtoUrl}>
-                <Icon name="mail" size={16} />
-                Enviar por e-mail
-              </a>
-              <button className="btn btn-outline btn-md" type="button" onClick={resetForm}>
                 Novo orçamento
               </button>
             </div>
@@ -661,8 +620,12 @@ export function QuoteForm() {
                     >
                       Voltar
                     </button>
-                    <button className="btn btn-accent" type="submit">
-                      Receber orçamento
+                    <button
+                      className="btn btn-accent"
+                      type="submit"
+                      disabled={submitting}
+                    >
+                      {submitting ? "Enviando…" : "Enviar pedido"}
                       <Icon name="arrow-right" size={16} className="icon-arrow" />
                     </button>
                   </>
