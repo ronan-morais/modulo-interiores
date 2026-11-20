@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FooterStrip } from "@/components/FooterStrip";
+import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
@@ -25,7 +25,7 @@ export default function NotFound() {
           </Link>
         </div>
       </main>
-      <FooterStrip />
+      <Footer />
     </>
   );
 }

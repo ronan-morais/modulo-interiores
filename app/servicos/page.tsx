@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { FooterStrip } from "@/components/FooterStrip";
+import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Icon } from "@/components/Icon";
 import { JsonLd } from "@/components/JsonLd";
@@ -154,7 +154,7 @@ export default function ServicosPage() {
         </section>
       </main>
 
-      <FooterStrip />
+      <Footer />
       <JsonLd
         data={{
           "@context": "https://schema.org",

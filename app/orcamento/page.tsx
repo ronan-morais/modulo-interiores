@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FooterStrip } from "@/components/FooterStrip";
+import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Icon } from "@/components/Icon";
 import { JsonLd } from "@/components/JsonLd";
@@ -59,7 +59,7 @@ export default function OrcamentoPage() {
         </section>
       </main>
 
-      <FooterStrip />
+      <Footer />
       <JsonLd
         data={{
           "@context": "https://schema.org",

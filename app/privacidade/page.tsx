@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FooterStrip } from "@/components/FooterStrip";
+import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { pageMetadata } from "@/lib/metadata";
 import { site } from "@/lib/site";
@@ -91,7 +91,7 @@ export default function PrivacidadePage() {
         </section>
       </main>
 
-      <FooterStrip />
+      <Footer />
     </>
   );
 }
