@@ -914,10 +914,6 @@ article[id] {
   color: #fff;
 }
 
-.footer-column address {
-  font-style: normal;
-}
-
 .footer-bottom {
   display: flex;
   align-items: center;

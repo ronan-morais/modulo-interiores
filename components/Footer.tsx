@@ -66,18 +66,12 @@ export function Footer() {
           <div className="footer-column">
             <h2>ATENDIMENTO</h2>
             <ul>
-              <li>{site.areasServed.slice(0, 3).join(" · ")}</li>
-              <li>{site.areasServed.slice(3).join(" · ")}</li>
+              <li>{site.areasServed.join(" · ")}</li>
               {site.openingHours.map((item) => (
                 <li key={item.days}>
                   {item.days}, {item.hours}
                 </li>
               ))}
-              <li>
-                <address>
-                  {site.address.street} · {site.address.district}, {site.address.city}
-                </address>
-              </li>
             </ul>
           </div>
         </div>

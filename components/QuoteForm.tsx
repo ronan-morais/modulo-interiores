@@ -6,15 +6,7 @@ import { Icon } from "@/components/Icon";
 import { quoteOptions, site } from "@/lib/site";
 
 const DRAFT_KEY = "modulo-orcamento-draft";
-const cityOptions = [
-  "Belo Horizonte",
-  "Contagem",
-  "Betim",
-  "Nova Lima",
-  "Sabará",
-  "Ibirité",
-  "Outra cidade",
-];
+const cityOptions = ["Belo Horizonte", "Contagem"];
 const timelines = [
   "O quanto antes",
   "Em até 30 dias",

@@ -21,13 +21,6 @@ export function businessSchema() {
         logo: `${site.url}/icon.svg`,
         priceRange: "$$",
         sameAs: [site.instagramUrl],
-        address: {
-          "@type": "PostalAddress",
-          streetAddress: site.address.street,
-          addressLocality: site.address.city,
-          addressRegion: site.address.state,
-          addressCountry: site.address.country,
-        },
         areaServed: site.areasServed.map((city) => ({
           "@type": "City",
           name: city,
