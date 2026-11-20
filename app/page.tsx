@@ -10,7 +10,7 @@ import { pageMetadata } from "@/lib/metadata";
 import { advantages, maintenance, maintenanceWhatsappHref, services, site } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Drywall, móveis, forros e pisos em Belo Horizonte | Módulo Interiores",
+  title: "Drywall, sancas, forros e pisos em Belo Horizonte | Módulo Interiores",
   description: site.description,
   path: "/",
   absoluteTitle: true,
@@ -67,7 +67,7 @@ export default function HomePage() {
                 Ambiente novo em poucos dias, sem quebra-quebra.
               </h1>
               <p className="hero-subhead">
-                Drywall, móveis sob medida, forros e pisos em Belo Horizonte.
+                Paredes, sancas, forros e móveis sob medida em Belo Horizonte.
                 Obra a seco, sem entulho e com o imóvel em uso.
               </p>
 
@@ -106,8 +106,8 @@ export default function HomePage() {
               </div>
               <div className="head-note" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
                 <p>
-                  Instalação, reforma e manutenção em paredes, móveis, forros e
-                  pisos, para imóveis residenciais e comerciais.
+                  Instalação, reforma e manutenção em paredes, sancas, forros,
+                  móveis e pisos, para imóveis residenciais e comerciais.
                 </p>
                 <Link className="head-link" href="/servicos">
                   Ver materiais e detalhes

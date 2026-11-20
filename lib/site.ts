@@ -3,7 +3,7 @@ export const site = {
   shortName: "Módulo",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://modulointeriores.com.br",
   description:
-    "Drywall, móveis sob medida, forros e pisos em Belo Horizonte. Instalação e manutenção a seco, sem quebra-quebra, com prazo curto e imóvel em uso.",
+    "Drywall, forros e pisos em Belo Horizonte: paredes, divisórias, sancas, rebaixamento de teto e móveis sob medida. Obra a seco, sem quebra-quebra.",
   phone: {
     display: "(31) 99740-8629",
     href: "tel:+5531997408629",
@@ -42,16 +42,16 @@ export const services: Service[] = [
     id: "divisorias-drywall",
     index: "01",
     category: "Drywall",
-    title: "Paredes, divisórias e móveis em drywall",
+    title: "Paredes, sancas, tetos e móveis em drywall",
     homeDescription:
-      "Divisórias e móveis sob medida: armários, closets, guarda-roupas e nichos, sem alvenaria.",
+      "Paredes, divisórias, sancas, rebaixamento de teto, forro em drywall e móveis sob medida.",
     pageDescription:
-      "Estrutura metálica com montantes reforçados, isolamento em lã de vidro e fechamento em placas. Executamos divisórias e móveis em drywall — armários, closets, guarda-roupas, nichos e prateleiras embutidas — prontos para pintura, com portas, batentes e rodapé no mesmo acabamento, sem demolição e sem entulho.",
-    lead: "Do ambiente ao móvel embutido, no mesmo acabamento.",
+      "Estrutura metálica com montantes reforçados, isolamento em lã de vidro e fechamento em placas. Executamos paredes e divisórias, sancas, rebaixamento de teto e forro em drywall — além de armários, closets, guarda-roupas e nichos — prontos para pintura, sem demolição e sem entulho.",
+    lead: "Parede, teto e móvel no mesmo acabamento.",
     bullets: [
-      "Armários, closets e guarda-roupas sob medida",
-      "Nichos, estantes e prateleiras embutidas",
-      "Divisórias acústicas e corta-fogo",
+      "Paredes e divisórias com isolamento acústico",
+      "Sancas, rebaixamento de teto e forro em drywall",
+      "Móveis: armários, closets, guarda-roupas e nichos",
     ],
     image: "/images/divisorias-drywall-bh.webp",
     alt: "Sala integrada com divisória em drywall e porta de vidro",
@@ -98,14 +98,14 @@ export const services: Service[] = [
     category: "Forro",
     title: "Forro em placa de gesso",
     homeDescription:
-      "Sancas, rebaixos e luz embutida desenhados para cada ambiente.",
+      "Forro liso, luz indireta e spots embutidos desenhados para cada ambiente.",
     pageDescription:
-      "Sancas, rebaixos, cortineiros e iluminação indireta desenhados sob medida, montados em estrutura seca sob a laje. Acabamento em gesso liso ou massa corrida, sem emendas aparentes.",
+      "Forro em placa de gesso com acabamento liso, iluminação indireta, spots e cortineiros desenhados sob medida. Montagem em estrutura seca sob a laje, com acabamento em gesso liso ou massa corrida, sem emendas aparentes.",
     lead: "Desenho de luz que valoriza cada ambiente.",
     bullets: [
-      "Sancas, rebaixos e cortineiros",
       "Iluminação indireta e spots embutidos",
-      "Acabamento em gesso liso ou massa",
+      "Forro liso sem emendas aparentes",
+      "Cortineiros e detalhes sob medida",
     ],
     image: "/images/forro-gesso-bh.webp",
     alt: "Sala de estar com forro de gesso e iluminação indireta",

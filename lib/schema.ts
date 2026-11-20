@@ -41,7 +41,7 @@ export function businessSchema() {
         ],
         hasOfferCatalog: {
           "@type": "OfferCatalog",
-          name: "Serviços de drywall, móveis, forros e pisos",
+          name: "Serviços de drywall, sancas, forros e pisos",
           itemListElement: serviceCatalog.map((service) => ({
             "@type": "Offer",
             itemOffered: {
@@ -112,7 +112,7 @@ export function quotePageSchema() {
     name: "Orçamento online",
     url: `${site.url}/orcamento`,
     description:
-      "Solicite um orçamento de drywall, móveis, forros e pisos em Belo Horizonte e região metropolitana.",
+      "Solicite um orçamento de drywall, sancas, forros e pisos em Belo Horizonte e região metropolitana.",
     mainEntity: { "@id": businessId },
   };
 }
