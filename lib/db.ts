@@ -79,6 +79,17 @@ const schemaStatements = [
     total_cents INTEGER NOT NULL DEFAULT 0
   )`,
   `CREATE INDEX IF NOT EXISTS idx_orcamentos_material_criado_em ON orcamentos_material (criado_em)`,
+  `CREATE TABLE IF NOT EXISTS materiais_template (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sistema TEXT NOT NULL,
+    chave TEXT NOT NULL,
+    descricao TEXT NOT NULL,
+    unidade TEXT NOT NULL,
+    valor_unit_cents INTEGER NOT NULL DEFAULT 0,
+    quantidade_m2 REAL,
+    ordem INTEGER NOT NULL DEFAULT 0
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_materiais_template_sistema ON materiais_template (sistema, ordem)`,
 ];
 
 /** Cria a tabela na primeira gravação de cada instância do servidor. */

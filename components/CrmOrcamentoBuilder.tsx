@@ -1,9 +1,23 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { saveOrcamentoMaterial } from "@/app/crm/actions";
+import { useEffect, useRef, useState } from "react";
+import {
+  resetMaterialTemplateAction,
+  saveMaterialTemplate,
+  saveOrcamentoMaterial,
+} from "@/app/crm/actions";
 import { Icon } from "@/components/Icon";
 import { formatBRL, parseAmountToCents, parseQuantity } from "@/lib/money";
+import {
+  areaDoProjeto,
+  isSistemaMaterial,
+  quantidadeDoItem,
+  sistemasMaterial,
+  type MedidasArea,
+  type SistemaMaterial,
+  type TemplateItem,
+  type TemplatesPorSistema,
+} from "@/lib/material-quantidades";
 import {
   lineTotalCents,
   orcamentoTotais,
@@ -11,11 +25,6 @@ import {
   type OrcamentoItem,
   type OrcamentoUnidade,
 } from "@/lib/orcamento-material";
-import {
-  calcularMateriais,
-  sistemasMaterial,
-  type SistemaMaterial,
-} from "@/lib/material-quantidades";
 
 type ClienteOption = {
   id: number;
@@ -32,6 +41,16 @@ type Draft = {
   valor: string;
   frete: string;
   desconto: string;
+};
+
+type MaterialRow = {
+  key: string;
+  chave: string;
+  descricao: string;
+  quantidade: string;
+  unidade: OrcamentoUnidade;
+  valor: string;
+  quantidadeM2: number | null;
 };
 
 function emptyLine(key: string): Draft {
@@ -81,7 +100,43 @@ function formatMoneyInput(cents: number): string {
   return (cents / 100).toFixed(2).replace(".", ",");
 }
 
-export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] }) {
+function medidasFromInputs(
+  medidaA: string,
+  medidaB: string,
+  vaos: string,
+  perda: string,
+): MedidasArea {
+  return {
+    medidaA: parseQuantity(medidaA),
+    medidaB: parseQuantity(medidaB),
+    vaos: parseQuantity(vaos),
+    perdaPercent: parseQuantity(perda),
+  };
+}
+
+function rowsFromTemplate(
+  template: TemplateItem[],
+  sistema: SistemaMaterial,
+  medidas: MedidasArea,
+): MaterialRow[] {
+  return template.map((item, index) => ({
+    key: `${sistema}-${item.chave}-${index}`,
+    chave: item.chave,
+    descricao: item.descricao,
+    quantidade: formatQuantity(quantidadeDoItem(item, sistema, medidas)),
+    unidade: item.unidade,
+    valor: formatMoneyInput(item.valorUnitCents),
+    quantidadeM2: item.quantidadeM2,
+  }));
+}
+
+export function CrmOrcamentoBuilder({
+  clientes,
+  templates,
+}: {
+  clientes: ClienteOption[];
+  templates: TemplatesPorSistema;
+}) {
   const [rows, setRows] = useState<Draft[]>([emptyLine("l1")]);
   const [clienteId, setClienteId] = useState("");
   const [clienteNome, setClienteNome] = useState("");
@@ -93,7 +148,17 @@ export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] })
   const [calcMedidaB, setCalcMedidaB] = useState("2,7");
   const [calcVaos, setCalcVaos] = useState("");
   const [calcPerda, setCalcPerda] = useState("10");
+  const [templatesState, setTemplatesState] =
+    useState<TemplatesPorSistema>(templates);
+  const [materiais, setMateriais] = useState<MaterialRow[]>(() =>
+    rowsFromTemplate(
+      templates.parede,
+      "parede",
+      medidasFromInputs("4", "2,7", "", "10"),
+    ),
+  );
   const [calcAviso, setCalcAviso] = useState<string | null>(null);
+  const [salvandoTemplate, setSalvandoTemplate] = useState(false);
   const nextKey = useRef(2);
 
   const itens = rows
@@ -101,16 +166,45 @@ export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] })
     .filter((item): item is OrcamentoItem => item !== null);
   const totais = orcamentoTotais(itens);
 
-  const calculo = calcularMateriais(calcSistema, {
-    medidaA: parseQuantity(calcMedidaA),
-    medidaB: parseQuantity(calcMedidaB),
-    vaos: parseQuantity(calcVaos),
-    perdaPercent: parseQuantity(calcPerda),
-  });
+  const medidas = medidasFromInputs(
+    calcMedidaA,
+    calcMedidaB,
+    calcVaos,
+    calcPerda,
+  );
+  const areaM2 = areaDoProjeto(calcSistema, medidas);
   const medidasLabels =
     calcSistema === "parede"
       ? { a: "Comprimento (m)", b: "Altura (m)" }
       : { a: "Largura (m)", b: "Comprimento (m)" };
+
+  useEffect(() => {
+    const atuais = medidasFromInputs(
+      calcMedidaA,
+      calcMedidaB,
+      calcVaos,
+      calcPerda,
+    );
+
+    setMateriais((current) =>
+      current.map((row) => ({
+        ...row,
+        quantidade: formatQuantity(
+          quantidadeDoItem(
+            {
+              chave: row.chave,
+              descricao: row.descricao,
+              unidade: row.unidade,
+              valorUnitCents: 0,
+              quantidadeM2: row.quantidadeM2,
+            },
+            calcSistema,
+            atuais,
+          ),
+        ),
+      })),
+    );
+  }, [calcSistema, calcMedidaA, calcMedidaB, calcVaos, calcPerda]);
 
   const updateRow = (key: string, patch: Partial<Draft>) => {
     setRows((current) =>
@@ -118,17 +212,45 @@ export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] })
     );
   };
 
+  const updateMaterial = (key: string, patch: Partial<MaterialRow>) => {
+    setMateriais((current) =>
+      current.map((row) => (row.key === key ? { ...row, ...patch } : row)),
+    );
+  };
+
   const inserirMateriais = () => {
-    if (!calculo.itens.length) return;
+    const validos = materiais
+      .map((row) => {
+        const quantidade = parseQuantity(row.quantidade);
+        const valorUnitCents = parseAmountToCents(row.valor) ?? 0;
+        const descricao = row.descricao.trim();
+
+        if (!descricao || quantidade <= 0 || valorUnitCents <= 0) return null;
+
+        return {
+          descricao,
+          quantidade: formatQuantity(quantidade),
+          unidade: row.unidade,
+          valor: formatMoneyInput(valorUnitCents),
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    if (!validos.length) {
+      setCalcAviso(
+        "Preencha descrição, quantidade e preço dos materiais antes de inserir.",
+      );
+      return;
+    }
 
     setRows((current) => {
       const preenchidas = current.filter((row) => !draftIsBlank(row));
-      const inseridas = calculo.itens.map((item) => ({
+      const inseridas = validos.map((item) => ({
         key: `c${nextKey.current++}`,
         descricao: item.descricao,
-        quantidade: formatQuantity(item.quantidade),
+        quantidade: item.quantidade,
         unidade: item.unidade,
-        valor: formatMoneyInput(item.valorUnitCents),
+        valor: item.valor,
         frete: "",
         desconto: "",
       }));
@@ -137,8 +259,52 @@ export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] })
     });
 
     setCalcAviso(
-      `${calculo.itens.length} itens inseridos no orçamento. Ajuste preços e fretes conforme o fornecedor.`,
+      validos.length === materiais.length
+        ? `${validos.length} itens inseridos no orçamento.`
+        : `${validos.length} itens inseridos. Itens sem preço ficaram de fora.`,
     );
+  };
+
+  const salvarTemplate = async () => {
+    const payload = materiais
+      .filter((row) => row.descricao.trim())
+      .map((row) => ({
+        chave: row.chave,
+        descricao: row.descricao.trim(),
+        unidade: row.unidade,
+        valorUnitCents: parseAmountToCents(row.valor) ?? 0,
+        quantidadeM2: row.quantidadeM2,
+      }));
+
+    if (!payload.length) {
+      setCalcAviso("Adicione ao menos um material antes de salvar o template.");
+      return;
+    }
+
+    setSalvandoTemplate(true);
+    try {
+      await saveMaterialTemplate(calcSistema, JSON.stringify(payload));
+      setTemplatesState((current) => ({ ...current, [calcSistema]: payload }));
+      setCalcAviso("Template do sistema salvo para os próximos orçamentos.");
+    } catch {
+      setCalcAviso("Não foi possível salvar o template. Tente de novo.");
+    } finally {
+      setSalvandoTemplate(false);
+    }
+  };
+
+  const restaurarTemplate = async () => {
+    setSalvandoTemplate(true);
+    try {
+      const itens = await resetMaterialTemplateAction(calcSistema);
+      setTemplatesState((current) => ({ ...current, [calcSistema]: itens }));
+      setMateriais(rowsFromTemplate(itens, calcSistema, medidas));
+      setCalcAviso("Template padrão restaurado.");
+    } catch {
+      setCalcAviso("Não foi possível restaurar o template.");
+    } finally {
+      setSalvandoTemplate(false);
+    }
   };
 
   return (
@@ -265,7 +431,7 @@ export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] })
         <h2 id="orc-area-title">Material pela área</h2>
 
         <div className="crm-area-grid">
-          <div className="field-group">
+          <div className="field-group crm-area-sistema">
             <label className="field-label" htmlFor="area-sistema">
               Sistema
             </label>
@@ -273,9 +439,15 @@ export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] })
               className="select"
               id="area-sistema"
               value={calcSistema}
-              onChange={(event) =>
-                setCalcSistema(event.target.value as SistemaMaterial)
-              }
+              onChange={(event) => {
+                const value = event.target.value;
+                if (!isSistemaMaterial(value)) return;
+                setCalcSistema(value);
+                setMateriais(
+                  rowsFromTemplate(templatesState[value], value, medidas),
+                );
+                setCalcAviso(null);
+              }}
             >
               {sistemasMaterial.map((sistema) => (
                 <option key={sistema.id} value={sistema.id}>
@@ -344,50 +516,162 @@ export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] })
         <div className="crm-area-result">
           <div>
             <span>Área calculada</span>
-            <strong>{formatQuantity(calculo.areaM2)} m²</strong>
+            <strong>{formatQuantity(areaM2)} m²</strong>
           </div>
           <button
             type="button"
             className="btn btn-outline btn-sm"
             onClick={inserirMateriais}
-            disabled={calculo.itens.length === 0}
+            disabled={materiais.length === 0}
           >
             Inserir itens no orçamento
           </button>
         </div>
 
-        {calculo.itens.length > 0 ? (
-          <>
-            <div className="crm-material-head" aria-hidden="true">
-              <span>Material</span>
-              <span>Quantidade</span>
-              <span>Unitário (ref.)</span>
-            </div>
-            <ul className="crm-material-list">
-              {calculo.itens.map((item) => (
-                <li key={item.chave}>
-                  <span className="crm-material-name">{item.descricao}</span>
-                  <span className="crm-material-qty">
-                    {formatQuantity(item.quantidade)} {item.unidade}
-                  </span>
-                  <span className="crm-material-price">
-                    {formatBRL(item.valorUnitCents)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="crm-calc-note">
-              Quantidades de referência com a perda informada. Ajuste conforme
-              o projeto antes de fechar o orçamento.
-            </p>
-          </>
-        ) : (
-          <p className="crm-calc-note">
-            Informe as medidas para calcular a área e os materiais.
-          </p>
-        )}
+        <div className="crm-mat-head" aria-hidden="true">
+          <span>Material</span>
+          <span>Qtd</span>
+          <span>Un.</span>
+          <span>Unitário</span>
+          <span>Total (ref.)</span>
+          <span />
+        </div>
+
+        <div className="crm-mat-rows">
+          {materiais.map((row, index) => {
+            const quantidade = parseQuantity(row.quantidade);
+            const valorUnitCents = parseAmountToCents(row.valor) ?? 0;
+
+            return (
+              <div className="crm-mat-row" key={row.key}>
+                <div className="crm-mat-cell crm-mat-desc" data-label="Material">
+                  <input
+                    className="input"
+                    maxLength={120}
+                    aria-label={`Descrição do material ${index + 1}`}
+                    value={row.descricao}
+                    onChange={(event) =>
+                      updateMaterial(row.key, {
+                        descricao: event.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="crm-mat-cell" data-label="Qtd">
+                  <input
+                    className="input"
+                    inputMode="decimal"
+                    aria-label={`Quantidade do material ${index + 1}`}
+                    value={row.quantidade}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      const quantidadeEditada = parseQuantity(value);
+                      updateMaterial(row.key, {
+                        quantidade: value,
+                        quantidadeM2:
+                          areaM2 > 0 ? quantidadeEditada / areaM2 : null,
+                      });
+                    }}
+                  />
+                </div>
+                <div className="crm-mat-cell" data-label="Un.">
+                  <select
+                    className="select"
+                    aria-label={`Unidade do material ${index + 1}`}
+                    value={row.unidade}
+                    onChange={(event) =>
+                      updateMaterial(row.key, {
+                        unidade: event.target.value as OrcamentoUnidade,
+                      })
+                    }
+                  >
+                    {unidades.map((unidade) => (
+                      <option key={unidade} value={unidade}>
+                        {unidade}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="crm-mat-cell" data-label="Unitário">
+                  <input
+                    className="input"
+                    inputMode="decimal"
+                    placeholder="0,00"
+                    aria-label={`Preço unitário do material ${index + 1}`}
+                    value={row.valor}
+                    onChange={(event) =>
+                      updateMaterial(row.key, { valor: event.target.value })
+                    }
+                  />
+                </div>
+                <div className="crm-mat-cell crm-mat-total" data-label="Total">
+                  {quantidade > 0 && valorUnitCents > 0
+                    ? formatBRL(Math.round(quantidade * valorUnitCents))
+                    : "—"}
+                </div>
+                <button
+                  type="button"
+                  className="crm-line-remove"
+                  aria-label={`Remover material ${index + 1}`}
+                  onClick={() =>
+                    setMateriais((current) =>
+                      current.filter((item) => item.key !== row.key),
+                    )
+                  }
+                >
+                  <Icon name="close" size={14} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="crm-mat-actions">
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() =>
+              setMateriais((current) => [
+                ...current,
+                {
+                  key: `custom-${Date.now()}-${current.length}`,
+                  chave: `custom-${Date.now()}`,
+                  descricao: "",
+                  quantidade: "0",
+                  unidade: "un",
+                  valor: "",
+                  quantidadeM2: 0,
+                },
+              ])
+            }
+          >
+            Adicionar material
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={salvarTemplate}
+            disabled={salvandoTemplate || materiais.length === 0}
+          >
+            {salvandoTemplate ? "Salvando..." : "Salvar como template"}
+          </button>
+          <button
+            type="button"
+            className="crm-link crm-mat-reset"
+            onClick={restaurarTemplate}
+            disabled={salvandoTemplate}
+          >
+            Restaurar padrão
+          </button>
+        </div>
 
         {calcAviso ? <p className="crm-saved">{calcAviso}</p> : null}
+
+        <p className="crm-calc-note">
+          Quantidades calculadas pela área e pela perda. Editar a quantidade
+          transforma o item em coeficiente por m². “Salvar como template”
+          vale para os próximos orçamentos deste sistema.
+        </p>
       </section>
 
       <section className="crm-panel" aria-labelledby="orc-itens-title">

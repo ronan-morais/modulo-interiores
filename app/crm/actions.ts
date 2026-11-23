@@ -32,6 +32,15 @@ import {
   removeOrcamentoMaterial,
 } from "@/lib/orcamento-material-db";
 import { sanitizeItens } from "@/lib/orcamento-material";
+import {
+  isSistemaMaterial,
+  sanitizeTemplateItens,
+  type TemplateItem,
+} from "@/lib/material-quantidades";
+import {
+  replaceMaterialTemplate,
+  resetMaterialTemplate,
+} from "@/lib/material-templates-db";
 
 const attempts = new Map<string, { count: number; blockedUntil: number }>();
 const MAX_ATTEMPTS = 6;
@@ -249,4 +258,36 @@ export async function deleteOrcamentoMaterial(formData: FormData) {
   }
 
   redirect("/crm/calculadora");
+}
+
+export async function saveMaterialTemplate(
+  sistema: string,
+  itensJson: string,
+): Promise<void> {
+  await requireSession();
+  if (!isSistemaMaterial(sistema)) return;
+
+  let parsed: unknown = null;
+  try {
+    parsed = JSON.parse(itensJson);
+  } catch {
+    parsed = null;
+  }
+
+  const itens = sanitizeTemplateItens(parsed);
+  if (!itens.length) return;
+
+  await replaceMaterialTemplate(sistema, itens);
+  revalidatePath("/crm/calculadora");
+}
+
+export async function resetMaterialTemplateAction(
+  sistema: string,
+): Promise<TemplateItem[]> {
+  await requireSession();
+  if (!isSistemaMaterial(sistema)) return [];
+
+  const itens = await resetMaterialTemplate(sistema);
+  revalidatePath("/crm/calculadora");
+  return itens;
 }
