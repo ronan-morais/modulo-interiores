@@ -11,6 +11,11 @@ import {
   type OrcamentoItem,
   type OrcamentoUnidade,
 } from "@/lib/orcamento-material";
+import {
+  calcularMateriais,
+  sistemasMaterial,
+  type SistemaMaterial,
+} from "@/lib/material-quantidades";
 
 type ClienteOption = {
   id: number;
@@ -68,6 +73,14 @@ function draftIsBlank(row: Draft): boolean {
   );
 }
 
+function formatQuantity(value: number): string {
+  return String(Number(value.toFixed(2))).replace(".", ",");
+}
+
+function formatMoneyInput(cents: number): string {
+  return (cents / 100).toFixed(2).replace(".", ",");
+}
+
 export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] }) {
   const [rows, setRows] = useState<Draft[]>([emptyLine("l1")]);
   const [clienteId, setClienteId] = useState("");
@@ -75,6 +88,12 @@ export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] })
   const [clienteEmail, setClienteEmail] = useState("");
   const [clienteWhatsapp, setClienteWhatsapp] = useState("");
   const [erro, setErro] = useState<string | null>(null);
+  const [calcSistema, setCalcSistema] = useState<SistemaMaterial>("parede");
+  const [calcMedidaA, setCalcMedidaA] = useState("4");
+  const [calcMedidaB, setCalcMedidaB] = useState("2,7");
+  const [calcVaos, setCalcVaos] = useState("");
+  const [calcPerda, setCalcPerda] = useState("10");
+  const [calcAviso, setCalcAviso] = useState<string | null>(null);
   const nextKey = useRef(2);
 
   const itens = rows
@@ -82,9 +101,43 @@ export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] })
     .filter((item): item is OrcamentoItem => item !== null);
   const totais = orcamentoTotais(itens);
 
+  const calculo = calcularMateriais(calcSistema, {
+    medidaA: parseQuantity(calcMedidaA),
+    medidaB: parseQuantity(calcMedidaB),
+    vaos: parseQuantity(calcVaos),
+    perdaPercent: parseQuantity(calcPerda),
+  });
+  const medidasLabels =
+    calcSistema === "parede"
+      ? { a: "Comprimento (m)", b: "Altura (m)" }
+      : { a: "Largura (m)", b: "Comprimento (m)" };
+
   const updateRow = (key: string, patch: Partial<Draft>) => {
     setRows((current) =>
       current.map((row) => (row.key === key ? { ...row, ...patch } : row)),
+    );
+  };
+
+  const inserirMateriais = () => {
+    if (!calculo.itens.length) return;
+
+    setRows((current) => {
+      const preenchidas = current.filter((row) => !draftIsBlank(row));
+      const inseridas = calculo.itens.map((item) => ({
+        key: `c${nextKey.current++}`,
+        descricao: item.descricao,
+        quantidade: formatQuantity(item.quantidade),
+        unidade: item.unidade,
+        valor: formatMoneyInput(item.valorUnitCents),
+        frete: "",
+        desconto: "",
+      }));
+
+      return [...preenchidas, ...inseridas];
+    });
+
+    setCalcAviso(
+      `${calculo.itens.length} itens inseridos no orçamento. Ajuste preços e fretes conforme o fornecedor.`,
     );
   };
 
@@ -206,6 +259,135 @@ export function CrmOrcamentoBuilder({ clientes }: { clientes: ClienteOption[] })
             onChange={(event) => setClienteEmail(event.target.value)}
           />
         </div>
+      </section>
+
+      <section className="crm-panel" aria-labelledby="orc-area-title">
+        <h2 id="orc-area-title">Material pela área</h2>
+
+        <div className="crm-area-grid">
+          <div className="field-group">
+            <label className="field-label" htmlFor="area-sistema">
+              Sistema
+            </label>
+            <select
+              className="select"
+              id="area-sistema"
+              value={calcSistema}
+              onChange={(event) =>
+                setCalcSistema(event.target.value as SistemaMaterial)
+              }
+            >
+              {sistemasMaterial.map((sistema) => (
+                <option key={sistema.id} value={sistema.id}>
+                  {sistema.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field-group">
+            <label className="field-label" htmlFor="area-a">
+              {medidasLabels.a}
+            </label>
+            <input
+              className="input"
+              id="area-a"
+              inputMode="decimal"
+              value={calcMedidaA}
+              onChange={(event) => setCalcMedidaA(event.target.value)}
+            />
+          </div>
+
+          <div className="field-group">
+            <label className="field-label" htmlFor="area-b">
+              {medidasLabels.b}
+            </label>
+            <input
+              className="input"
+              id="area-b"
+              inputMode="decimal"
+              value={calcMedidaB}
+              onChange={(event) => setCalcMedidaB(event.target.value)}
+            />
+          </div>
+
+          {calcSistema !== "piso" ? (
+            <div className="field-group">
+              <label className="field-label" htmlFor="area-vaos">
+                Vãos (m²)
+              </label>
+              <input
+                className="input"
+                id="area-vaos"
+                inputMode="decimal"
+                placeholder="0"
+                value={calcVaos}
+                onChange={(event) => setCalcVaos(event.target.value)}
+              />
+            </div>
+          ) : null}
+
+          <div className="field-group">
+            <label className="field-label" htmlFor="area-perda">
+              Perda (%)
+            </label>
+            <input
+              className="input"
+              id="area-perda"
+              inputMode="decimal"
+              value={calcPerda}
+              onChange={(event) => setCalcPerda(event.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="crm-area-result">
+          <div>
+            <span>Área calculada</span>
+            <strong>{formatQuantity(calculo.areaM2)} m²</strong>
+          </div>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={inserirMateriais}
+            disabled={calculo.itens.length === 0}
+          >
+            Inserir itens no orçamento
+          </button>
+        </div>
+
+        {calculo.itens.length > 0 ? (
+          <>
+            <div className="crm-material-head" aria-hidden="true">
+              <span>Material</span>
+              <span>Quantidade</span>
+              <span>Unitário (ref.)</span>
+            </div>
+            <ul className="crm-material-list">
+              {calculo.itens.map((item) => (
+                <li key={item.chave}>
+                  <span className="crm-material-name">{item.descricao}</span>
+                  <span className="crm-material-qty">
+                    {formatQuantity(item.quantidade)} {item.unidade}
+                  </span>
+                  <span className="crm-material-price">
+                    {formatBRL(item.valorUnitCents)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="crm-calc-note">
+              Quantidades de referência com a perda informada. Ajuste conforme
+              o projeto antes de fechar o orçamento.
+            </p>
+          </>
+        ) : (
+          <p className="crm-calc-note">
+            Informe as medidas para calcular a área e os materiais.
+          </p>
+        )}
+
+        {calcAviso ? <p className="crm-saved">{calcAviso}</p> : null}
       </section>
 
       <section className="crm-panel" aria-labelledby="orc-itens-title">

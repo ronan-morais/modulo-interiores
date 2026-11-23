@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CrmCalculator } from "@/components/CrmCalculator";
 import { CrmOrcamentoBuilder } from "@/components/CrmOrcamentoBuilder";
 import { CrmShell } from "@/components/CrmShell";
 import { Icon } from "@/components/Icon";
@@ -42,9 +41,8 @@ export default async function CalculadoraPage({
   return (
     <CrmShell title="Calculadora" current="calculadora">
       <p className="crm-calc-intro">
-        Monte o orçamento item a item, com frete e desconto por material. Ao
-        salvar, a proposta fica pronta para imprimir em PDF e enviar ao
-        cliente.
+        Informe as medidas para calcular a área e a quantidade de material.
+        Ajuste os itens, salve e envie a proposta em PDF.
       </p>
 
       {erro ? (
@@ -100,11 +98,6 @@ export default async function CalculadoraPage({
           </ul>
         )}
       </section>
-
-      <details className="crm-quick">
-        <summary>Estimativa rápida por m² (referência)</summary>
-        <CrmCalculator />
-      </details>
     </CrmShell>
   );
 }
