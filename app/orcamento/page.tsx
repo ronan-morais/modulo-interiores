@@ -9,14 +9,13 @@ import { pageMetadata } from "@/lib/metadata";
 import { breadcrumbSchema, quotePageSchema } from "@/lib/schema";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Orçamento online de drywall, forro e piso",
+  title: "Cotação online de drywall, forro e piso",
   description:
-    "Solicite em 3 minutos um orçamento de drywall, forro de PVC, modular ou gesso, piso modular e vinílico. Resposta em até 1 dia útil em Belo Horizonte e região.",
+    "Solicite em 3 minutos um orçamento de drywall, forro de PVC, modular ou gesso, piso modular e vinílico, em Belo Horizonte e região.",
   path: "/orcamento",
 });
 
 const trustItems = [
-  { icon: "timer" as const, text: "Resposta em até 1 dia útil" },
   { icon: "ruler" as const, text: "Visita de medição sem custo em BH" },
   { icon: "shield-check" as const, text: "Garantia por escrito do serviço" },
   { icon: "file-text" as const, text: "Proposta com material, mão de obra e prazo" },
@@ -32,7 +31,7 @@ export default function OrcamentoPage() {
         <div className="container quote-breadcrumb">
           <nav className="breadcrumb" aria-label="Você está aqui">
             <Link href="/">Início</Link> <span aria-hidden="true">/</span>{" "}
-            <span>Orçamento online</span>
+            <span>Cotação online</span>
           </nav>
         </div>
 
@@ -66,7 +65,7 @@ export default function OrcamentoPage() {
           "@graph": [
             breadcrumbSchema([
               { name: "Início", path: "/" },
-              { name: "Orçamento online", path: "/orcamento" },
+              { name: "Cotação online", path: "/orcamento" },
             ]),
             quotePageSchema(),
           ],

@@ -18,7 +18,7 @@ export const metadata: Metadata = pageMetadata({
 
 const proofItems = [
   { label: "Equipe própria", detail: "Medição, projeto e execução." },
-  { label: "Orçamento em 1 dia útil", detail: "Com material, mão de obra e prazo." },
+  { label: "Orçamento", detail: "Com material, mão de obra e prazo." },
   { label: "Medição sem custo", detail: "Em Belo Horizonte e região." },
   { label: "Garantia por escrito", detail: "No serviço executado." },
 ];
@@ -26,9 +26,9 @@ const proofItems = [
 const processSteps = [
   {
     index: "01",
-    title: "Orçamento online",
+    title: "Cotação online",
     description:
-      "Conte o ambiente e envie fotos e medidas. A resposta traz escopo e valor em até 1 dia útil.",
+      "Conte o ambiente e envie fotos e medidas. A resposta traz escopo e valor.",
   },
   {
     index: "02",
@@ -73,7 +73,7 @@ export default function HomePage() {
 
               <div className="hero-actions">
                 <Link className="btn btn-light btn-md" href="/orcamento">
-                  Receber orçamento em 1 dia útil
+                  Receber orçamento
                   <Icon name="arrow-right" size={16} className="icon-arrow" />
                 </Link>
                 <a className="hero-call" href={site.phone.href}>
@@ -117,7 +117,7 @@ export default function HomePage() {
             </div>
 
             <div data-reveal>
-              <Carousel label="Serviços executados">
+              <Carousel label="Serviços executados" gridFrom={721}>
                 {services.map((service) => (
                   <Link
                     className="service-tile"
@@ -212,13 +212,13 @@ export default function HomePage() {
                 Conte o ambiente. Devolvemos sistema, prazo e valor.
               </h2>
               <p>
-                Três minutos no formulário. A proposta chega em até 1 dia útil,
-                com visita de medição sem custo em BH.
+                Três minutos no formulário. A proposta traz sistema, escopo,
+                material e prazo, com visita de medição sem custo em BH.
               </p>
             </div>
             <div className="final-actions" data-reveal style={{ "--reveal-delay": "90ms" } as CSSProperties}>
               <Link className="btn btn-light btn-md" href="/orcamento">
-                Fazer orçamento online
+                Fazer cotação online
                 <Icon name="arrow-right" size={16} className="icon-arrow" />
               </Link>
               <a

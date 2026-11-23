@@ -8,6 +8,8 @@ export type IconName =
   | "message-circle"
   | "check"
   | "chevron-down"
+  | "menu"
+  | "close"
   | "upload"
   | "timer"
   | "ruler"
@@ -44,6 +46,18 @@ const icons: Record<IconName, ReactNode> = {
   ),
   check: <path d="M20 6 9 17l-5-5" />,
   "chevron-down": <path d="m6 9 6 6 6-6" />,
+  menu: (
+    <>
+      <path d="M4 8h16" />
+      <path d="M4 16h16" />
+    </>
+  ),
+  close: (
+    <>
+      <path d="M6 6 18 18" />
+      <path d="M18 6 6 18" />
+    </>
+  ),
   upload: (
     <>
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />

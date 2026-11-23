@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Brand } from "@/components/Brand";
 import { Icon } from "@/components/Icon";
+import { MobileMenu } from "@/components/MobileMenu";
 import { navLinks, site } from "@/lib/site";
 
 type HeaderProps = {
@@ -41,16 +42,18 @@ export function Header({ activeHref, variant = "default" }: HeaderProps) {
           </a>
 
           {variant === "back" ? (
-            <Link className="btn btn-outline btn-sm" href="/">
+            <Link className="btn btn-outline btn-sm header-cta" href="/">
               <Icon name="arrow-left" size={15} />
               Voltar ao site
             </Link>
           ) : (
-            <Link className="btn btn-dark btn-sm" href="/orcamento">
-              Orçamento online
+            <Link className="btn btn-dark btn-sm header-cta" href="/orcamento">
+              Cotação online
               <Icon name="arrow-up-right" size={15} className="icon-arrow-diag" />
             </Link>
           )}
+
+          <MobileMenu activeHref={activeHref} variant={variant} />
         </div>
       </div>
     </header>

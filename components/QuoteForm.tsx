@@ -271,7 +271,7 @@ export function QuoteForm() {
             </span>
             <p role="status">
               Recebemos seu pedido. A equipe responde pelo WhatsApp ou e-mail
-              informado em até 1 dia útil.
+              informado.
             </p>
             <div className="success-actions">
               <button

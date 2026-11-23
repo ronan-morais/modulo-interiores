@@ -8,7 +8,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = pageMetadata({
   title: "Política de privacidade",
   description:
-    "Como a Módulo Interiores trata os dados enviados no formulário de orçamento online.",
+    "Como a Módulo Interiores trata os dados enviados no formulário de cotação online.",
   path: "/privacidade",
 });
 
@@ -39,7 +39,7 @@ export default function PrivacidadePage() {
 
               <h2>Dados coletados</h2>
               <p>
-                No formulário de orçamento online podem ser informados: nome,
+                No formulário de cotação online podem ser informados: nome,
                 WhatsApp, e-mail, tipo de imóvel, serviços de interesse, área
                 total aproximada, número de ambientes, cidade, bairro, prazo
                 desejado, detalhes do ambiente e fotos ou plantas anexadas.

@@ -109,7 +109,7 @@ export function quotePageSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "ContactPage",
-    name: "Orçamento online",
+    name: "Cotação online",
     url: `${site.url}/orcamento`,
     description:
       "Solicite um orçamento de drywall, sancas, forros e pisos em Belo Horizonte e região metropolitana.",
