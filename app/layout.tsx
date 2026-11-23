@@ -1,10 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Fraunces, Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import { JsonLd } from "@/components/JsonLd";
 import { Reveal } from "@/components/Reveal";
 import { businessSchema } from "@/lib/schema";
 import { site } from "@/lib/site";
 import "./globals.css";
+
+const GTM_ID = "GTM-PW6XJWCB";
+const gtmEnabled =
+  process.env.NODE_ENV === "production" ||
+  process.env.NEXT_PUBLIC_GTM_ENABLED === "true";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -115,12 +121,30 @@ export default function RootLayout({
       className={`${fraunces.variable} ${hanken.variable} ${plexMono.variable}`}
     >
       <body>
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+            title="Google Tag Manager"
+          />
+        </noscript>
         <a className="skip-link" href="#conteudo">
           Pular para o conteúdo
         </a>
         {children}
         <Reveal />
         <JsonLd data={businessSchema()} />
+        {gtmEnabled ? (
+          <Script id="google-tag-manager" strategy="afterInteractive">
+            {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${GTM_ID}');`}
+          </Script>
+        ) : null}
       </body>
     </html>
   );
