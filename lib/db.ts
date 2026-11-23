@@ -76,6 +76,8 @@ const schemaStatements = [
     subtotal_cents INTEGER NOT NULL DEFAULT 0,
     frete_cents INTEGER NOT NULL DEFAULT 0,
     desconto_cents INTEGER NOT NULL DEFAULT 0,
+    mao_obra_cents INTEGER NOT NULL DEFAULT 0,
+    mao_obra_descricao TEXT,
     total_cents INTEGER NOT NULL DEFAULT 0
   )`,
   `CREATE INDEX IF NOT EXISTS idx_orcamentos_material_criado_em ON orcamentos_material (criado_em)`,

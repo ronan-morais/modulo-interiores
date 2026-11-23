@@ -235,12 +235,19 @@ export async function saveOrcamentoMaterial(formData: FormData) {
   const titulo = readText(formData, "titulo", 120);
   if (!titulo) redirect("/crm/calculadora?erro=titulo");
 
+  const maoObraRaw = Number(formData.get("maoObraCents") ?? 0);
+  const maoObraCents = Number.isFinite(maoObraRaw)
+    ? Math.min(100_000_000, Math.max(0, Math.round(maoObraRaw)))
+    : 0;
+
   const id = await createOrcamentoMaterial({
     titulo,
     clienteNome: readText(formData, "clienteNome", 120),
     clienteEmail: readText(formData, "clienteEmail", 160),
     clienteWhatsapp: readText(formData, "clienteWhatsapp", 40),
     observacoes: readText(formData, "observacoes", 2000),
+    maoObraCents,
+    maoObraDescricao: readText(formData, "maoObraDescricao", 120),
     itens,
   });
 

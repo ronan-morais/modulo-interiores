@@ -1,12 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  resetMaterialTemplateAction,
-  saveMaterialTemplate,
-  saveOrcamentoMaterial,
-} from "@/app/crm/actions";
+import { saveOrcamentoMaterial } from "@/app/crm/actions";
 import { Icon } from "@/components/Icon";
+import { MaterialTemplateDrawer } from "@/components/MaterialTemplateDrawer";
 import { formatBRL, parseAmountToCents, parseQuantity } from "@/lib/money";
 import {
   areaDoProjeto,
@@ -157,14 +154,18 @@ export function CrmOrcamentoBuilder({
       medidasFromInputs("4", "2,7", "", "10"),
     ),
   );
+  const [maoModo, setMaoModo] = useState<"fechado" | "m2">("fechado");
+  const [maoDescricao, setMaoDescricao] = useState("");
+  const [maoValor, setMaoValor] = useState("");
+  const [maoPorM2, setMaoPorM2] = useState("");
   const [calcAviso, setCalcAviso] = useState<string | null>(null);
-  const [salvandoTemplate, setSalvandoTemplate] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [materiaisDirty, setMateriaisDirty] = useState(false);
   const nextKey = useRef(2);
 
   const itens = rows
     .map(draftToItem)
     .filter((item): item is OrcamentoItem => item !== null);
-  const totais = orcamentoTotais(itens);
 
   const medidas = medidasFromInputs(
     calcMedidaA,
@@ -173,6 +174,11 @@ export function CrmOrcamentoBuilder({
     calcPerda,
   );
   const areaM2 = areaDoProjeto(calcSistema, medidas);
+  const maoObraCents =
+    maoModo === "m2"
+      ? Math.round(parseQuantity(maoPorM2) * areaM2 * 100)
+      : (parseAmountToCents(maoValor) ?? 0);
+  const totais = orcamentoTotais(itens, maoObraCents);
   const medidasLabels =
     calcSistema === "parede"
       ? { a: "Comprimento (m)", b: "Altura (m)" }
@@ -213,6 +219,7 @@ export function CrmOrcamentoBuilder({
   };
 
   const updateMaterial = (key: string, patch: Partial<MaterialRow>) => {
+    setMateriaisDirty(true);
     setMateriais((current) =>
       current.map((row) => (row.key === key ? { ...row, ...patch } : row)),
     );
@@ -265,46 +272,12 @@ export function CrmOrcamentoBuilder({
     );
   };
 
-  const salvarTemplate = async () => {
-    const payload = materiais
-      .filter((row) => row.descricao.trim())
-      .map((row) => ({
-        chave: row.chave,
-        descricao: row.descricao.trim(),
-        unidade: row.unidade,
-        valorUnitCents: parseAmountToCents(row.valor) ?? 0,
-        quantidadeM2: row.quantidadeM2,
-      }));
-
-    if (!payload.length) {
-      setCalcAviso("Adicione ao menos um material antes de salvar o template.");
-      return;
+  const aplicarTemplate = (sistema: SistemaMaterial, itens: TemplateItem[]) => {
+    setTemplatesState((current) => ({ ...current, [sistema]: itens }));
+    if (sistema === calcSistema && !materiaisDirty) {
+      setMateriais(rowsFromTemplate(itens, sistema, medidas));
     }
-
-    setSalvandoTemplate(true);
-    try {
-      await saveMaterialTemplate(calcSistema, JSON.stringify(payload));
-      setTemplatesState((current) => ({ ...current, [calcSistema]: payload }));
-      setCalcAviso("Template do sistema salvo para os próximos orçamentos.");
-    } catch {
-      setCalcAviso("Não foi possível salvar o template. Tente de novo.");
-    } finally {
-      setSalvandoTemplate(false);
-    }
-  };
-
-  const restaurarTemplate = async () => {
-    setSalvandoTemplate(true);
-    try {
-      const itens = await resetMaterialTemplateAction(calcSistema);
-      setTemplatesState((current) => ({ ...current, [calcSistema]: itens }));
-      setMateriais(rowsFromTemplate(itens, calcSistema, medidas));
-      setCalcAviso("Template padrão restaurado.");
-    } catch {
-      setCalcAviso("Não foi possível restaurar o template.");
-    } finally {
-      setSalvandoTemplate(false);
-    }
+    setCalcAviso("Template atualizado. Ele vale para os próximos orçamentos.");
   };
 
   return (
@@ -333,6 +306,8 @@ export function CrmOrcamentoBuilder({
       }}
     >
       <input type="hidden" name="itens" value={JSON.stringify(itens)} />
+      <input type="hidden" name="maoObraCents" value={maoObraCents} />
+      <input type="hidden" name="maoObraDescricao" value={maoDescricao} />
 
       <section className="crm-panel" aria-labelledby="orc-dados-title">
         <h2 id="orc-dados-title">Dados do orçamento</h2>
@@ -446,6 +421,7 @@ export function CrmOrcamentoBuilder({
                 setMateriais(
                   rowsFromTemplate(templatesState[value], value, medidas),
                 );
+                setMateriaisDirty(false);
                 setCalcAviso(null);
               }}
             >
@@ -613,11 +589,12 @@ export function CrmOrcamentoBuilder({
                   type="button"
                   className="crm-line-remove"
                   aria-label={`Remover material ${index + 1}`}
-                  onClick={() =>
+                  onClick={() => {
+                    setMateriaisDirty(true);
                     setMateriais((current) =>
                       current.filter((item) => item.key !== row.key),
-                    )
-                  }
+                    );
+                  }}
                 >
                   <Icon name="close" size={14} />
                 </button>
@@ -630,7 +607,8 @@ export function CrmOrcamentoBuilder({
           <button
             type="button"
             className="btn btn-outline btn-sm"
-            onClick={() =>
+            onClick={() => {
+              setMateriaisDirty(true);
               setMateriais((current) => [
                 ...current,
                 {
@@ -642,35 +620,25 @@ export function CrmOrcamentoBuilder({
                   valor: "",
                   quantidadeM2: 0,
                 },
-              ])
-            }
+              ]);
+            }}
           >
             Adicionar material
           </button>
           <button
             type="button"
             className="btn btn-outline btn-sm"
-            onClick={salvarTemplate}
-            disabled={salvandoTemplate || materiais.length === 0}
+            onClick={() => setTemplatesOpen(true)}
           >
-            {salvandoTemplate ? "Salvando..." : "Salvar como template"}
-          </button>
-          <button
-            type="button"
-            className="crm-link crm-mat-reset"
-            onClick={restaurarTemplate}
-            disabled={salvandoTemplate}
-          >
-            Restaurar padrão
+            Gerenciar templates
           </button>
         </div>
 
         {calcAviso ? <p className="crm-saved">{calcAviso}</p> : null}
 
         <p className="crm-calc-note">
-          Quantidades calculadas pela área e pela perda. Editar a quantidade
-          transforma o item em coeficiente por m². “Salvar como template”
-          vale para os próximos orçamentos deste sistema.
+          Ajustes aqui valem para este orçamento. Use “Gerenciar templates”
+          para mudar o padrão do sistema nos próximos orçamentos.
         </p>
       </section>
 
@@ -814,10 +782,102 @@ export function CrmOrcamentoBuilder({
           Adicionar item
         </button>
 
+        <div className="crm-labor">
+          <div className="crm-list-head">
+            <h2>Mão de obra</h2>
+            <span className="crm-list-count">
+              {maoObraCents > 0 ? formatBRL(maoObraCents) : "não incluída"}
+            </span>
+          </div>
+
+          <div className="crm-labor-grid">
+            <div className="field-group crm-labor-descricao">
+              <label className="field-label" htmlFor="mao-descricao">
+                Descrição
+              </label>
+              <input
+                className="input"
+                id="mao-descricao"
+                maxLength={120}
+                placeholder="Ex.: Instalação de drywall e forro"
+                value={maoDescricao}
+                onChange={(event) => setMaoDescricao(event.target.value)}
+              />
+            </div>
+
+            <div className="field-group">
+              <label className="field-label" htmlFor="mao-modo">
+                Forma
+              </label>
+              <select
+                className="select"
+                id="mao-modo"
+                value={maoModo}
+                onChange={(event) =>
+                  setMaoModo(event.target.value === "m2" ? "m2" : "fechado")
+                }
+              >
+                <option value="fechado">Valor fechado</option>
+                <option value="m2">Por m²</option>
+              </select>
+            </div>
+
+            {maoModo === "m2" ? (
+              <div className="field-group">
+                <label className="field-label" htmlFor="mao-m2">
+                  Valor por m² (R$)
+                </label>
+                <input
+                  className="input"
+                  id="mao-m2"
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={maoPorM2}
+                  onChange={(event) => setMaoPorM2(event.target.value)}
+                />
+              </div>
+            ) : (
+              <div className="field-group">
+                <label className="field-label" htmlFor="mao-valor">
+                  Valor (R$)
+                </label>
+                <input
+                  className="input"
+                  id="mao-valor"
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={maoValor}
+                  onChange={(event) => setMaoValor(event.target.value)}
+                />
+              </div>
+            )}
+
+            <div className="field-group">
+              <span className="field-label">Total da mão de obra</span>
+              <span className="crm-labor-total">
+                {formatBRL(maoObraCents)}
+              </span>
+            </div>
+          </div>
+
+          {maoModo === "m2" ? (
+            <p className="crm-labor-hint">
+              {formatBRL(
+                Math.round(parseQuantity(maoPorM2) * 100),
+              )}{" "}
+              por m² × {formatQuantity(areaM2)} m² de área calculada.
+            </p>
+          ) : null}
+        </div>
+
         <dl className="crm-totals">
           <div>
             <dt>Subtotal</dt>
             <dd>{formatBRL(totais.subtotalCents)}</dd>
+          </div>
+          <div>
+            <dt>Mão de obra</dt>
+            <dd>{formatBRL(totais.maoObraCents)}</dd>
           </div>
           <div>
             <dt>Frete</dt>
@@ -859,6 +919,14 @@ export function CrmOrcamentoBuilder({
           </button>
         </div>
       </section>
+
+      <MaterialTemplateDrawer
+        open={templatesOpen}
+        sistemaInicial={calcSistema}
+        templates={templatesState}
+        onClose={() => setTemplatesOpen(false)}
+        onSaved={aplicarTemplate}
+      />
     </form>
   );
 }

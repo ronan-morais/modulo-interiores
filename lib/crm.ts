@@ -120,6 +120,32 @@ async function ensureCrmColumns(): Promise<void> {
       if (!String(error).includes("duplicate column")) throw error;
     }
   }
+
+  const materialInfo = await db.execute(
+    "PRAGMA table_info(orcamentos_material)",
+  );
+  const materialColumns = new Set(
+    materialInfo.rows.map((row) => String(row.name)),
+  );
+  const materialAdditions: [column: string, sql: string][] = [
+    [
+      "mao_obra_cents",
+      "ALTER TABLE orcamentos_material ADD COLUMN mao_obra_cents INTEGER NOT NULL DEFAULT 0",
+    ],
+    [
+      "mao_obra_descricao",
+      "ALTER TABLE orcamentos_material ADD COLUMN mao_obra_descricao TEXT",
+    ],
+  ];
+
+  for (const [column, sql] of materialAdditions) {
+    if (materialColumns.has(column)) continue;
+    try {
+      await db.execute(sql);
+    } catch (error) {
+      if (!String(error).includes("duplicate column")) throw error;
+    }
+  }
 }
 
 export async function ensureCrmSchema(): Promise<void> {

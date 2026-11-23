@@ -15,6 +15,7 @@ export type OrcamentoMaterial = OrcamentoTotais & {
   clienteEmail: string;
   clienteWhatsapp: string;
   observacoes: string;
+  maoObraDescricao: string;
   itens: OrcamentoItem[];
 };
 
@@ -24,6 +25,8 @@ export type OrcamentoMaterialInput = {
   clienteEmail: string;
   clienteWhatsapp: string;
   observacoes: string;
+  maoObraCents: number;
+  maoObraDescricao: string;
   itens: OrcamentoItem[];
 };
 
@@ -37,6 +40,8 @@ function mapOrcamento(row: Record<string, unknown>): OrcamentoMaterial {
     }
   }
 
+  const maoObraCents = Number(row.mao_obra_cents ?? 0);
+
   return {
     id: Number(row.id),
     criadoEm: String(row.criado_em ?? ""),
@@ -45,8 +50,9 @@ function mapOrcamento(row: Record<string, unknown>): OrcamentoMaterial {
     clienteEmail: String(row.cliente_email ?? ""),
     clienteWhatsapp: String(row.cliente_whatsapp ?? ""),
     observacoes: String(row.observacoes ?? ""),
+    maoObraDescricao: String(row.mao_obra_descricao ?? ""),
     itens,
-    ...orcamentoTotais(itens),
+    ...orcamentoTotais(itens, maoObraCents),
   };
 }
 
@@ -80,19 +86,22 @@ export async function createOrcamentoMaterial(
   await ensureCrmSchema();
 
   const itens = sanitizeItens(input.itens);
-  const totais = orcamentoTotais(itens);
+  const totais = orcamentoTotais(itens, input.maoObraCents);
 
   const result = await getDb().execute({
     sql: `INSERT INTO orcamentos_material
             (titulo, cliente_nome, cliente_email, cliente_whatsapp, observacoes,
-             itens, subtotal_cents, frete_cents, desconto_cents, total_cents)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             mao_obra_cents, mao_obra_descricao, itens,
+             subtotal_cents, frete_cents, desconto_cents, total_cents)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       input.titulo,
       input.clienteNome,
       input.clienteEmail,
       input.clienteWhatsapp,
       input.observacoes,
+      totais.maoObraCents,
+      input.maoObraDescricao,
       JSON.stringify(itens),
       totais.subtotalCents,
       totais.freteCents,

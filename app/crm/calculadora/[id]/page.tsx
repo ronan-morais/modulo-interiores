@@ -50,7 +50,7 @@ export default async function OrcamentoMaterialPage({
   const corpo = [
     `Olá${orcamento.clienteNome ? `, ${orcamento.clienteNome.split(" ")[0]}` : ""}!`,
     "",
-    `Segue o orçamento de material da obra “${orcamento.titulo}”${numero}.`,
+    `Segue o orçamento de material da obra “${orcamento.titulo}” (${numero}).`,
     "",
     ...orcamento.itens.map(
       (item) =>
@@ -58,6 +58,11 @@ export default async function OrcamentoMaterialPage({
     ),
     "",
     `Subtotal: ${formatBRL(orcamento.subtotalCents)}`,
+    ...(orcamento.maoObraCents > 0
+      ? [
+          `Mão de obra${orcamento.maoObraDescricao ? ` (${orcamento.maoObraDescricao})` : ""}: ${formatBRL(orcamento.maoObraCents)}`,
+        ]
+      : []),
     `Frete: ${formatBRL(orcamento.freteCents)}`,
     `Descontos: ${formatBRL(orcamento.descontoCents)}`,
     `Total: ${formatBRL(orcamento.totalCents)}`,
@@ -178,6 +183,16 @@ export default async function OrcamentoMaterialPage({
             <dt>Subtotal</dt>
             <dd>{formatBRL(orcamento.subtotalCents)}</dd>
           </div>
+          {orcamento.maoObraCents > 0 ? (
+            <div>
+              <dt>
+                {orcamento.maoObraDescricao
+                  ? `Mão de obra · ${orcamento.maoObraDescricao}`
+                  : "Mão de obra"}
+              </dt>
+              <dd>{formatBRL(orcamento.maoObraCents)}</dd>
+            </div>
+          ) : null}
           <div>
             <dt>Frete</dt>
             <dd>{formatBRL(orcamento.freteCents)}</dd>

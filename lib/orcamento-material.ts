@@ -15,6 +15,7 @@ export type OrcamentoTotais = {
   subtotalCents: number;
   freteCents: number;
   descontoCents: number;
+  maoObraCents: number;
   totalCents: number;
 };
 
@@ -33,7 +34,10 @@ export function lineTotalCents(item: OrcamentoItem): number {
   );
 }
 
-export function orcamentoTotais(itens: OrcamentoItem[]): OrcamentoTotais {
+export function orcamentoTotais(
+  itens: OrcamentoItem[],
+  maoObraCents = 0,
+): OrcamentoTotais {
   let subtotalCents = 0;
   let freteCents = 0;
   let descontoCents = 0;
@@ -48,9 +52,10 @@ export function orcamentoTotais(itens: OrcamentoItem[]): OrcamentoTotais {
     subtotalCents,
     freteCents,
     descontoCents,
+    maoObraCents: Math.max(0, Math.round(maoObraCents)),
     totalCents: Math.max(
       0,
-      subtotalCents + freteCents - descontoCents,
+      subtotalCents + freteCents + maoObraCents - descontoCents,
     ),
   };
 }
