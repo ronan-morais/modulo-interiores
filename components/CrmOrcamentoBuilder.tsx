@@ -9,11 +9,11 @@ import {
   areaDoProjeto,
   descricaoRegra,
   formulaArea,
-  isSistemaMaterial,
   quantidadeDoItem,
-  sistemasMaterial,
+  sistemaPorId,
   type MedidasArea,
-  type SistemaMaterial,
+  type RegraQuantidade,
+  type SistemaDef,
   type TemplateItem,
   type TemplatesPorSistema,
 } from "@/lib/material-quantidades";
@@ -49,7 +49,8 @@ type MaterialRow = {
   quantidade: string;
   unidade: OrcamentoUnidade;
   valor: string;
-  quantidadeM2: number | null;
+  regra: RegraQuantidade;
+  fator: number | null;
 };
 
 function emptyLine(key: string): Draft {
@@ -115,25 +116,28 @@ function medidasFromInputs(
 
 function rowsFromTemplate(
   template: TemplateItem[],
-  sistema: SistemaMaterial,
+  sistema: SistemaDef,
   medidas: MedidasArea,
 ): MaterialRow[] {
   return template.map((item, index) => ({
-    key: `${sistema}-${item.chave}-${index}`,
+    key: `${sistema.id}-${item.chave}-${index}`,
     chave: item.chave,
     descricao: item.descricao,
     quantidade: formatQuantity(quantidadeDoItem(item, sistema, medidas)),
     unidade: item.unidade,
     valor: formatMoneyInput(item.valorUnitCents),
-    quantidadeM2: item.quantidadeM2,
+    regra: item.regra,
+    fator: item.fator,
   }));
 }
 
 export function CrmOrcamentoBuilder({
   clientes,
+  sistemas,
   templates,
 }: {
   clientes: ClienteOption[];
+  sistemas: SistemaDef[];
   templates: TemplatesPorSistema;
 }) {
   const [rows, setRows] = useState<Draft[]>([emptyLine("l1")]);
@@ -142,7 +146,8 @@ export function CrmOrcamentoBuilder({
   const [clienteEmail, setClienteEmail] = useState("");
   const [clienteWhatsapp, setClienteWhatsapp] = useState("");
   const [erro, setErro] = useState<string | null>(null);
-  const [calcSistema, setCalcSistema] = useState<SistemaMaterial>("parede");
+  const [sistemasState, setSistemasState] = useState<SistemaDef[]>(sistemas);
+  const [calcSistema, setCalcSistema] = useState(sistemas[0]?.id ?? "");
   const [calcMedidaA, setCalcMedidaA] = useState("4");
   const [calcMedidaB, setCalcMedidaB] = useState("2,7");
   const [calcVaos, setCalcVaos] = useState("");
@@ -151,8 +156,15 @@ export function CrmOrcamentoBuilder({
     useState<TemplatesPorSistema>(templates);
   const [materiais, setMateriais] = useState<MaterialRow[]>(() =>
     rowsFromTemplate(
-      templates.parede,
-      "parede",
+      templates[sistemas[0]?.id] ?? [],
+      sistemas[0] ?? {
+        id: "",
+        nome: "",
+        medidaA: "Comprimento (m)",
+        medidaB: "Altura (m)",
+        usaVaos: true,
+        padrao: true,
+      },
       medidasFromInputs("4", "2,7", "", "10"),
     ),
   );
@@ -175,23 +187,24 @@ export function CrmOrcamentoBuilder({
     calcVaos,
     calcPerda,
   );
-  const areaM2 = areaDoProjeto(calcSistema, medidas);
+  const sistemaAtual = sistemaPorId(sistemasState, calcSistema);
+  const areaM2 = areaDoProjeto(sistemaAtual, medidas);
   const maoObraCents =
     maoModo === "m2"
       ? Math.round(parseQuantity(maoPorM2) * areaM2 * 100)
       : (parseAmountToCents(maoValor) ?? 0);
   const totais = orcamentoTotais(itens, maoObraCents);
-  const medidasLabels =
-    calcSistema === "parede"
-      ? { a: "Comprimento (m)", b: "Altura (m)" }
-      : { a: "Largura (m)", b: "Comprimento (m)" };
+  const medidasLabels = {
+    a: sistemaAtual.medidaA,
+    b: sistemaAtual.medidaB,
+  };
   const medidaAValor = parseQuantity(calcMedidaA);
   const medidaBValor = parseQuantity(calcMedidaB);
   const areaFormula =
     medidaAValor > 0 && medidaBValor > 0
-      ? calcSistema === "piso"
-        ? `${formatQuantity(medidaAValor)} × ${formatQuantity(medidaBValor)} m`
-        : `${formatQuantity(medidaAValor)} × ${formatQuantity(medidaBValor)} m − ${formatQuantity(parseQuantity(calcVaos))} m² de vãos`
+      ? sistemaAtual.usaVaos
+        ? `${formatQuantity(medidaAValor)} × ${formatQuantity(medidaBValor)} m − ${formatQuantity(parseQuantity(calcVaos))} m² de vãos`
+        : `${formatQuantity(medidaAValor)} × ${formatQuantity(medidaBValor)} m`
       : null;
 
   useEffect(() => {
@@ -212,15 +225,17 @@ export function CrmOrcamentoBuilder({
               descricao: row.descricao,
               unidade: row.unidade,
               valorUnitCents: 0,
-              quantidadeM2: row.quantidadeM2,
+              regra: row.regra,
+              fator: row.fator,
             },
-            calcSistema,
+            sistemaPorId(sistemasState, calcSistema),
             atuais,
           ),
         ),
       })),
     );
-  }, [calcSistema, calcMedidaA, calcMedidaB, calcVaos, calcPerda]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calcSistema, calcMedidaA, calcMedidaB, calcVaos, calcPerda, sistemasState]);
 
   const updateRow = (key: string, patch: Partial<Draft>) => {
     setRows((current) =>
@@ -282,10 +297,16 @@ export function CrmOrcamentoBuilder({
     );
   };
 
-  const aplicarTemplate = (sistema: SistemaMaterial, itens: TemplateItem[]) => {
+  const aplicarTemplate = (sistema: string, itens: TemplateItem[]) => {
     setTemplatesState((current) => ({ ...current, [sistema]: itens }));
     if (sistema === calcSistema && !materiaisDirty) {
-      setMateriais(rowsFromTemplate(itens, sistema, medidas));
+      setMateriais(
+        rowsFromTemplate(
+          itens,
+          sistemaPorId(sistemasState, sistema),
+          medidas,
+        ),
+      );
     }
     setCalcAviso("Template atualizado. Ele vale para os próximos orçamentos.");
   };
@@ -426,16 +447,17 @@ export function CrmOrcamentoBuilder({
               value={calcSistema}
               onChange={(event) => {
                 const value = event.target.value;
-                if (!isSistemaMaterial(value)) return;
+                const alvo = sistemasState.find((item) => item.id === value);
+                if (!alvo) return;
                 setCalcSistema(value);
                 setMateriais(
-                  rowsFromTemplate(templatesState[value], value, medidas),
+                  rowsFromTemplate(templatesState[value] ?? [], alvo, medidas),
                 );
                 setMateriaisDirty(false);
                 setCalcAviso(null);
               }}
             >
-              {sistemasMaterial.map((sistema) => (
+              {sistemasState.map((sistema) => (
                 <option key={sistema.id} value={sistema.id}>
                   {sistema.nome}
                 </option>
@@ -469,7 +491,7 @@ export function CrmOrcamentoBuilder({
             />
           </div>
 
-          {calcSistema !== "piso" ? (
+          {sistemaAtual.usaVaos ? (
             <div className="field-group">
               <label className="field-label" htmlFor="area-vaos">
                 Vãos (m²)
@@ -557,8 +579,8 @@ export function CrmOrcamentoBuilder({
                       const quantidadeEditada = parseQuantity(value);
                       updateMaterial(row.key, {
                         quantidade: value,
-                        quantidadeM2:
-                          areaM2 > 0 ? quantidadeEditada / areaM2 : null,
+                        regra: row.regra === "auto" ? "area" : row.regra,
+                        fator: areaM2 > 0 ? quantidadeEditada / areaM2 : null,
                       });
                     }}
                   />
@@ -631,7 +653,8 @@ export function CrmOrcamentoBuilder({
                   quantidade: "0",
                   unidade: "un",
                   valor: "",
-                  quantidadeM2: 0,
+                  regra: "area",
+                  fator: 1,
                 },
               ]);
             }}
@@ -651,16 +674,22 @@ export function CrmOrcamentoBuilder({
 
         <details className="crm-rules">
           <summary>Como o material é calculado</summary>
-          <p className="crm-area-formula">{formulaArea(calcSistema)}</p>
+          <p className="crm-area-formula">{formulaArea(sistemaAtual)}</p>
           <ul>
             {materiais.map((row, index) => (
               <li key={row.key}>
                 <span>{row.descricao || `Material ${index + 1}`}</span>
                 <span>
                   {descricaoRegra(
-                    row.chave,
-                    calcSistema,
-                    row.quantidadeM2,
+                    {
+                      chave: row.chave,
+                      descricao: row.descricao,
+                      unidade: row.unidade,
+                      valorUnitCents: 0,
+                      regra: row.regra,
+                      fator: row.fator,
+                    },
+                    sistemaAtual,
                   )}
                 </span>
               </li>
@@ -952,13 +981,44 @@ export function CrmOrcamentoBuilder({
         </div>
       </section>
 
-      <MaterialTemplateDrawer
+      {templatesOpen ? (
+        <MaterialTemplateDrawer
         open={templatesOpen}
         sistemaInicial={calcSistema}
+        sistemas={sistemasState}
         templates={templatesState}
         onClose={() => setTemplatesOpen(false)}
         onSaved={aplicarTemplate}
-      />
+        onSistemaCriado={(sistema) => {
+          setSistemasState((current) => [...current, sistema]);
+          setTemplatesState((current) => ({ ...current, [sistema.id]: [] }));
+          setCalcSistema(sistema.id);
+          setMateriais([]);
+          setMateriaisDirty(false);
+          setCalcAviso(null);
+        }}
+        onSistemaRemovido={(id) => {
+          const restantes = sistemasState.filter((item) => item.id !== id);
+          setSistemasState(restantes);
+          setTemplatesState((current) => {
+            const next = { ...current };
+            delete next[id];
+            return next;
+          });
+          if (calcSistema === id && restantes[0]) {
+            setCalcSistema(restantes[0].id);
+            setMateriais(
+              rowsFromTemplate(
+                templatesState[restantes[0].id] ?? [],
+                restantes[0],
+                medidas,
+              ),
+            );
+            setMateriaisDirty(false);
+          }
+        }}
+        />
+      ) : null}
     </form>
   );
 }

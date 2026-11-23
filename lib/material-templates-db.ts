@@ -1,13 +1,24 @@
 import { ensureCrmSchema } from "@/lib/crm";
 import { getDb } from "@/lib/db";
 import {
-  isSistemaMaterial,
-  sistemasMaterial,
+  isRegraQuantidade,
+  sistemasPadrao,
   templatesPadrao,
-  type SistemaMaterial,
+  type SistemaDef,
   type TemplateItem,
   type TemplatesPorSistema,
 } from "@/lib/material-quantidades";
+
+function mapSistema(row: Record<string, unknown>): SistemaDef {
+  return {
+    id: String(row.slug ?? ""),
+    nome: String(row.nome ?? ""),
+    medidaA: String(row.medida_a ?? "Comprimento (m)"),
+    medidaB: String(row.medida_b ?? "Altura (m)"),
+    usaVaos: Number(row.usa_vaos ?? 0) === 1,
+    padrao: Number(row.padrao ?? 0) === 1,
+  };
+}
 
 function mapTemplateItem(row: Record<string, unknown>): TemplateItem {
   return {
@@ -15,26 +26,136 @@ function mapTemplateItem(row: Record<string, unknown>): TemplateItem {
     descricao: String(row.descricao ?? ""),
     unidade: String(row.unidade ?? "un") as TemplateItem["unidade"],
     valorUnitCents: Number(row.valor_unit_cents ?? 0),
-    quantidadeM2:
+    regra: isRegraQuantidade(row.regra) ? row.regra : "auto",
+    fator:
       row.quantidade_m2 === null || row.quantidade_m2 === undefined
         ? null
         : Number(row.quantidade_m2),
   };
 }
 
-async function seedTemplate(sistema: SistemaMaterial): Promise<TemplateItem[]> {
-  const itens = templatesPadrao[sistema];
+function slugify(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+}
+
+async function seedSistemasPadrao(): Promise<void> {
+  const statements = sistemasPadrao.map((sistema, index) => ({
+    sql: `INSERT INTO sistemas_material
+            (slug, nome, medida_a, medida_b, usa_vaos, padrao, ordem)
+          VALUES (?, ?, ?, ?, ?, 1, ?)
+          ON CONFLICT(slug) DO NOTHING`,
+    args: [
+      sistema.id,
+      sistema.nome,
+      sistema.medidaA,
+      sistema.medidaB,
+      sistema.usaVaos ? 1 : 0,
+      index,
+    ],
+  }));
+
+  if (statements.length) await getDb().batch(statements, "write");
+}
+
+export async function listSistemasMaterial(): Promise<SistemaDef[]> {
+  await ensureCrmSchema();
+  await seedSistemasPadrao();
+
+  const result = await getDb().execute(
+    "SELECT * FROM sistemas_material ORDER BY padrao DESC, ordem ASC, id ASC",
+  );
+
+  return result.rows.map((row) => mapSistema(row as Record<string, unknown>));
+}
+
+export async function createSistemaMaterial(input: {
+  nome: string;
+  medidaA: string;
+  medidaB: string;
+  usaVaos: boolean;
+}): Promise<SistemaDef | null> {
+  await ensureCrmSchema();
+  await seedSistemasPadrao();
+
+  const base = slugify(input.nome);
+  if (!base) return null;
+
+  const existing = await getDb().execute("SELECT slug FROM sistemas_material");
+  const used = new Set(existing.rows.map((row) => String(row.slug)));
+
+  let slug = base;
+  let suffix = 2;
+  while (used.has(slug)) {
+    slug = `${base}-${suffix++}`;
+  }
+
+  const ordemResult = await getDb().execute(
+    "SELECT COALESCE(MAX(ordem), 0) + 1 AS proxima FROM sistemas_material",
+  );
+  const ordem = Number(ordemResult.rows[0]?.proxima ?? 1);
+
+  await getDb().execute({
+    sql: `INSERT INTO sistemas_material
+            (slug, nome, medida_a, medida_b, usa_vaos, padrao, ordem)
+          VALUES (?, ?, ?, ?, ?, 0, ?)`,
+    args: [
+      slug,
+      input.nome,
+      input.medidaA,
+      input.medidaB,
+      input.usaVaos ? 1 : 0,
+      ordem,
+    ],
+  });
+
+  return {
+    id: slug,
+    nome: input.nome,
+    medidaA: input.medidaA,
+    medidaB: input.medidaB,
+    usaVaos: input.usaVaos,
+    padrao: false,
+  };
+}
+
+export async function deleteSistemaMaterial(slug: string): Promise<boolean> {
+  await ensureCrmSchema();
+
+  const result = await getDb().execute({
+    sql: "DELETE FROM sistemas_material WHERE slug = ? AND padrao = 0",
+    args: [slug],
+  });
+
+  if (!result.rowsAffected) return false;
+
+  await getDb().execute({
+    sql: "DELETE FROM materiais_template WHERE sistema = ?",
+    args: [slug],
+  });
+
+  return true;
+}
+
+async function seedTemplate(slug: string): Promise<TemplateItem[]> {
+  const itens = templatesPadrao[slug] ?? [];
   const statements = itens.map((item, index) => ({
     sql: `INSERT INTO materiais_template
-            (sistema, chave, descricao, unidade, valor_unit_cents, quantidade_m2, ordem)
-          VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            (sistema, chave, descricao, unidade, valor_unit_cents, regra, quantidade_m2, ordem)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
-      sistema,
+      slug,
       item.chave,
       item.descricao,
       item.unidade,
       item.valorUnitCents,
-      item.quantidadeM2,
+      item.regra,
+      item.fator,
       index,
     ],
   }));
@@ -47,23 +168,22 @@ async function seedTemplate(sistema: SistemaMaterial): Promise<TemplateItem[]> {
 export async function listMaterialTemplates(): Promise<TemplatesPorSistema> {
   await ensureCrmSchema();
 
+  const sistemas = await listSistemasMaterial();
   const result = await getDb().execute(
     "SELECT * FROM materiais_template ORDER BY sistema, ordem, id",
   );
 
-  const grouped: TemplatesPorSistema = {
-    parede: [],
-    forro: [],
-    piso: [],
-  };
+  const grouped: TemplatesPorSistema = {};
+  for (const sistema of sistemas) grouped[sistema.id] = [];
 
   for (const row of result.rows) {
-    if (!isSistemaMaterial(row.sistema)) continue;
-    grouped[row.sistema].push(mapTemplateItem(row as Record<string, unknown>));
+    const id = String(row.sistema);
+    if (!grouped[id]) continue;
+    grouped[id].push(mapTemplateItem(row as Record<string, unknown>));
   }
 
-  for (const sistema of sistemasMaterial) {
-    if (grouped[sistema.id].length === 0) {
+  for (const sistema of sistemas) {
+    if (sistema.padrao && grouped[sistema.id].length === 0) {
       grouped[sistema.id] = await seedTemplate(sistema.id);
     }
   }
@@ -72,7 +192,7 @@ export async function listMaterialTemplates(): Promise<TemplatesPorSistema> {
 }
 
 export async function replaceMaterialTemplate(
-  sistema: SistemaMaterial,
+  sistema: string,
   itens: TemplateItem[],
 ): Promise<void> {
   await ensureCrmSchema();
@@ -84,15 +204,16 @@ export async function replaceMaterialTemplate(
     },
     ...itens.map((item, index) => ({
       sql: `INSERT INTO materiais_template
-              (sistema, chave, descricao, unidade, valor_unit_cents, quantidade_m2, ordem)
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+              (sistema, chave, descricao, unidade, valor_unit_cents, regra, quantidade_m2, ordem)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         sistema,
         item.chave,
         item.descricao,
         item.unidade,
         item.valorUnitCents,
-        item.quantidadeM2,
+        item.regra,
+        item.fator,
         index,
       ],
     })),
@@ -102,7 +223,7 @@ export async function replaceMaterialTemplate(
 }
 
 export async function resetMaterialTemplate(
-  sistema: SistemaMaterial,
+  sistema: string,
 ): Promise<TemplateItem[]> {
   await ensureCrmSchema();
 
@@ -110,6 +231,8 @@ export async function resetMaterialTemplate(
     sql: "DELETE FROM materiais_template WHERE sistema = ?",
     args: [sistema],
   });
+
+  if (!templatesPadrao[sistema]) return [];
 
   return seedTemplate(sistema);
 }

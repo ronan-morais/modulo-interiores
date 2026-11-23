@@ -8,7 +8,10 @@ import { listClientes } from "@/lib/clientes";
 import { isAuthenticated } from "@/lib/crm";
 import { formatBRL } from "@/lib/money";
 import { listOrcamentosMaterial } from "@/lib/orcamento-material-db";
-import { listMaterialTemplates } from "@/lib/material-templates-db";
+import {
+  listMaterialTemplates,
+  listSistemasMaterial,
+} from "@/lib/material-templates-db";
 import { deleteOrcamentoMaterial } from "../actions";
 
 export const metadata: Metadata = {
@@ -34,9 +37,10 @@ export default async function CalculadoraPage({
   if (!(await isAuthenticated())) redirect("/crm");
 
   const { erro } = await searchParams;
-  const [clientes, orcamentos, templates] = await Promise.all([
+  const [clientes, orcamentos, sistemas, templates] = await Promise.all([
     listClientes(),
     listOrcamentosMaterial(),
+    listSistemasMaterial(),
     listMaterialTemplates(),
   ]);
 
@@ -53,7 +57,11 @@ export default async function CalculadoraPage({
         </p>
       ) : null}
 
-      <CrmOrcamentoBuilder clientes={clientes} templates={templates} />
+      <CrmOrcamentoBuilder
+        clientes={clientes}
+        sistemas={sistemas}
+        templates={templates}
+      />
 
       <section className="crm-quotes" aria-labelledby="orcamentos-salvos">
         <div className="crm-list-head">

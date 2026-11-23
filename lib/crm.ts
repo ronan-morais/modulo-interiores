@@ -146,6 +146,26 @@ async function ensureCrmColumns(): Promise<void> {
       if (!String(error).includes("duplicate column")) throw error;
     }
   }
+
+  const templateInfo = await db.execute(
+    "PRAGMA table_info(materiais_template)",
+  );
+  const templateColumns = new Set(
+    templateInfo.rows.map((row) => String(row.name)),
+  );
+
+  if (!templateColumns.has("regra")) {
+    try {
+      await db.execute(
+        "ALTER TABLE materiais_template ADD COLUMN regra TEXT NOT NULL DEFAULT 'auto'",
+      );
+      await db.execute(
+        "UPDATE materiais_template SET regra = 'area' WHERE quantidade_m2 IS NOT NULL AND regra = 'auto'",
+      );
+    } catch (error) {
+      if (!String(error).includes("duplicate column")) throw error;
+    }
+  }
 }
 
 export async function ensureCrmSchema(): Promise<void> {

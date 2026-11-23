@@ -81,6 +81,16 @@ const schemaStatements = [
     total_cents INTEGER NOT NULL DEFAULT 0
   )`,
   `CREATE INDEX IF NOT EXISTS idx_orcamentos_material_criado_em ON orcamentos_material (criado_em)`,
+  `CREATE TABLE IF NOT EXISTS sistemas_material (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT NOT NULL UNIQUE,
+    nome TEXT NOT NULL,
+    medida_a TEXT NOT NULL,
+    medida_b TEXT NOT NULL,
+    usa_vaos INTEGER NOT NULL DEFAULT 1,
+    padrao INTEGER NOT NULL DEFAULT 0,
+    ordem INTEGER NOT NULL DEFAULT 0
+  )`,
   `CREATE TABLE IF NOT EXISTS materiais_template (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sistema TEXT NOT NULL,
@@ -88,6 +98,7 @@ const schemaStatements = [
     descricao TEXT NOT NULL,
     unidade TEXT NOT NULL,
     valor_unit_cents INTEGER NOT NULL DEFAULT 0,
+    regra TEXT NOT NULL DEFAULT 'auto',
     quantidade_m2 REAL,
     ordem INTEGER NOT NULL DEFAULT 0
   )`,

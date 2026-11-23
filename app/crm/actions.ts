@@ -33,11 +33,13 @@ import {
 } from "@/lib/orcamento-material-db";
 import { sanitizeItens } from "@/lib/orcamento-material";
 import {
-  isSistemaMaterial,
   sanitizeTemplateItens,
+  type SistemaDef,
   type TemplateItem,
 } from "@/lib/material-quantidades";
 import {
+  createSistemaMaterial,
+  deleteSistemaMaterial,
   replaceMaterialTemplate,
   resetMaterialTemplate,
 } from "@/lib/material-templates-db";
@@ -272,7 +274,8 @@ export async function saveMaterialTemplate(
   itensJson: string,
 ): Promise<void> {
   await requireSession();
-  if (!isSistemaMaterial(sistema)) return;
+  const sistemaId = String(sistema ?? "").trim().slice(0, 40);
+  if (!sistemaId) return;
 
   let parsed: unknown = null;
   try {
@@ -284,7 +287,7 @@ export async function saveMaterialTemplate(
   const itens = sanitizeTemplateItens(parsed);
   if (!itens.length) return;
 
-  await replaceMaterialTemplate(sistema, itens);
+  await replaceMaterialTemplate(sistemaId, itens);
   revalidatePath("/crm/calculadora");
 }
 
@@ -292,9 +295,43 @@ export async function resetMaterialTemplateAction(
   sistema: string,
 ): Promise<TemplateItem[]> {
   await requireSession();
-  if (!isSistemaMaterial(sistema)) return [];
+  const sistemaId = String(sistema ?? "").trim().slice(0, 40);
+  if (!sistemaId) return [];
 
-  const itens = await resetMaterialTemplate(sistema);
+  const itens = await resetMaterialTemplate(sistemaId);
   revalidatePath("/crm/calculadora");
   return itens;
+}
+
+export async function createMaterialSystemAction(
+  nome: string,
+  medidaA: string,
+  medidaB: string,
+  usaVaos: boolean,
+): Promise<SistemaDef | null> {
+  await requireSession();
+
+  const nomeLimpo = String(nome ?? "").trim().slice(0, 60);
+  const rotuloA = String(medidaA ?? "").trim().slice(0, 40);
+  const rotuloB = String(medidaB ?? "").trim().slice(0, 40);
+  if (!nomeLimpo || !rotuloA || !rotuloB) return null;
+
+  const sistema = await createSistemaMaterial({
+    nome: nomeLimpo,
+    medidaA: rotuloA,
+    medidaB: rotuloB,
+    usaVaos: Boolean(usaVaos),
+  });
+
+  revalidatePath("/crm/calculadora");
+  return sistema;
+}
+
+export async function deleteMaterialSystemAction(
+  sistema: string,
+): Promise<boolean> {
+  await requireSession();
+  const removed = await deleteSistemaMaterial(String(sistema ?? "").slice(0, 40));
+  revalidatePath("/crm/calculadora");
+  return removed;
 }

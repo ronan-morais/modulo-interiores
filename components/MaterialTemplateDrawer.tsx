@@ -3,14 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
+  createMaterialSystemAction,
+  deleteMaterialSystemAction,
   resetMaterialTemplateAction,
   saveMaterialTemplate,
 } from "@/app/crm/actions";
 import { Icon } from "@/components/Icon";
 import { parseAmountToCents, parseQuantity } from "@/lib/money";
 import {
-  sistemasMaterial,
-  type SistemaMaterial,
+  type RegraQuantidade,
+  type SistemaDef,
   type TemplateItem,
   type TemplatesPorSistema,
 } from "@/lib/material-quantidades";
@@ -22,8 +24,8 @@ type TemplateDraft = {
   descricao: string;
   unidade: OrcamentoUnidade;
   valor: string;
-  quantidadeM2: number | null;
-  quantidadeM2Input: string;
+  regra: RegraQuantidade;
+  fatorInput: string;
 };
 
 function moneyInput(cents: number): string {
@@ -41,35 +43,53 @@ function draftsFromTemplate(template: TemplateItem[]): TemplateDraft[] {
     descricao: item.descricao,
     unidade: item.unidade,
     valor: moneyInput(item.valorUnitCents),
-    quantidadeM2: item.quantidadeM2,
-    quantidadeM2Input:
-      item.quantidadeM2 === null ? "" : numberInput(item.quantidadeM2),
+    regra: item.regra,
+    fatorInput: item.fator === null ? "" : numberInput(item.fator),
   }));
+}
+
+function isItemPadrao(chave: string): boolean {
+  return !chave.startsWith("custom-");
 }
 
 export function MaterialTemplateDrawer({
   open,
   sistemaInicial,
+  sistemas,
   templates,
   onClose,
   onSaved,
+  onSistemaCriado,
+  onSistemaRemovido,
 }: {
   open: boolean;
-  sistemaInicial: SistemaMaterial;
+  sistemaInicial: string;
+  sistemas: SistemaDef[];
   templates: TemplatesPorSistema;
   onClose: () => void;
-  onSaved: (sistema: SistemaMaterial, itens: TemplateItem[]) => void;
+  onSaved: (sistema: string, itens: TemplateItem[]) => void;
+  onSistemaCriado: (sistema: SistemaDef) => void;
+  onSistemaRemovido: (id: string) => void;
 }) {
   const [mounted, setMounted] = useState(false);
-  const [sistema, setSistema] = useState<SistemaMaterial>(sistemaInicial);
+  const [sistema, setSistema] = useState(sistemaInicial);
   const [drafts, setDrafts] = useState<TemplateDraft[]>(() =>
-    draftsFromTemplate(templates[sistemaInicial]),
+    draftsFromTemplate(templates[sistemaInicial] ?? []),
   );
+  const [criando, setCriando] = useState(false);
+  const [novoNome, setNovoNome] = useState("");
+  const [novoMedidaA, setNovoMedidaA] = useState("Comprimento (m)");
+  const [novoMedidaB, setNovoMedidaB] = useState("Altura (m)");
+  const [novoVaos, setNovoVaos] = useState(true);
+  const [removendo, setRemovendo] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+
+  const sistemaAtual =
+    sistemas.find((item) => item.id === sistema) ?? sistemas[0];
 
   useEffect(() => {
     setMounted(true);
@@ -82,9 +102,7 @@ export function MaterialTemplateDrawer({
     const panel = panelRef.current;
     document.body.style.overflow = "hidden";
     panel
-      ?.querySelector<HTMLElement>(
-        "button, input, select, textarea, a[href]",
-      )
+      ?.querySelector<HTMLElement>("button, input, select, textarea, a[href]")
       ?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -127,10 +145,12 @@ export function MaterialTemplateDrawer({
 
   if (!open || !mounted) return null;
 
-  const trocarSistema = (next: SistemaMaterial) => {
+  const trocarSistema = (next: string) => {
     setSistema(next);
-    setDrafts(draftsFromTemplate(templates[next]));
+    setDrafts(draftsFromTemplate(templates[next] ?? []));
     setAviso(null);
+    setRemovendo(false);
+    setCriando(false);
   };
 
   const atualizar = (key: string, patch: Partial<TemplateDraft>) => {
@@ -149,7 +169,9 @@ export function MaterialTemplateDrawer({
         descricao: draft.descricao.trim(),
         unidade: draft.unidade,
         valorUnitCents: parseAmountToCents(draft.valor) ?? 0,
-        quantidadeM2: draft.quantidadeM2,
+        regra: draft.regra,
+        fator:
+          draft.regra === "auto" ? null : parseQuantity(draft.fatorInput),
       }));
 
     if (!itens.length) {
@@ -185,6 +207,65 @@ export function MaterialTemplateDrawer({
     }
   };
 
+  const criarSistema = async () => {
+    if (!novoNome.trim() || !novoMedidaA.trim() || !novoMedidaB.trim()) {
+      setAviso("Informe o nome e as duas medidas do sistema.");
+      return;
+    }
+
+    setOcupado(true);
+    setAviso(null);
+    try {
+      const criado = await createMaterialSystemAction(
+        novoNome,
+        novoMedidaA,
+        novoMedidaB,
+        novoVaos,
+      );
+
+      if (!criado) {
+        setAviso("Não foi possível criar o sistema. Confira os dados.");
+        return;
+      }
+
+      onSistemaCriado(criado);
+      setSistema(criado.id);
+      setDrafts([]);
+      setCriando(false);
+      setNovoNome("");
+      setAviso("Sistema criado. Adicione os materiais e salve o template.");
+    } catch {
+      setAviso("Não foi possível criar o sistema. Tente de novo.");
+    } finally {
+      setOcupado(false);
+    }
+  };
+
+  const excluirSistema = async () => {
+    if (!removendo) {
+      setRemovendo(true);
+      return;
+    }
+
+    setOcupado(true);
+    setAviso(null);
+    try {
+      const removido = await deleteMaterialSystemAction(sistema);
+      if (!removido) {
+        setAviso("Sistemas padrão não podem ser excluídos.");
+        setRemovendo(false);
+        return;
+      }
+      onSistemaRemovido(sistema);
+      onClose();
+    } catch {
+      setAviso("Não foi possível excluir o sistema.");
+      setRemovendo(false);
+    } finally {
+      setOcupado(false);
+    }
+  };
+
   return createPortal(
     <div
       className="crm-drawer-backdrop"
@@ -214,8 +295,8 @@ export function MaterialTemplateDrawer({
           </button>
         </header>
 
-        <div className="crm-drawer-tabs" role="tablist" aria-label="Sistema">
-          {sistemasMaterial.map((item) => (
+        <div className="crm-drawer-tabs" role="tablist" aria-label="Sistemas">
+          {sistemas.map((item) => (
             <button
               key={item.id}
               type="button"
@@ -224,96 +305,218 @@ export function MaterialTemplateDrawer({
               className="crm-drawer-tab"
               onClick={() => trocarSistema(item.id)}
             >
-              {item.nome.replace(" (2 faces)", "")}
+              {item.nome}
             </button>
           ))}
+          <button
+            type="button"
+            className="crm-drawer-tab crm-drawer-newtab"
+            onClick={() => {
+              setCriando(true);
+              setAviso(null);
+              setRemovendo(false);
+            }}
+          >
+            + Novo sistema
+          </button>
         </div>
 
         <div className="crm-drawer-body">
-          <div className="crm-drawer-lines-head" aria-hidden="true">
-            <span>Material</span>
-            <span>Un.</span>
-            <span>Unitário</span>
-            <span>Qtd/m²</span>
-            <span />
-          </div>
-
-          {drafts.map((draft, index) => (
-            <div className="crm-drawer-row" key={draft.key}>
-              <div className="crm-drawer-cell crm-drawer-name" data-label="Material">
+          {criando ? (
+            <div className="crm-drawer-new">
+              <h3>Novo sistema</h3>
+              <div className="field-group">
+                <label className="field-label" htmlFor="novo-sistema-nome">
+                  Nome
+                </label>
                 <input
                   className="input"
-                  maxLength={120}
-                  aria-label={`Template: material ${index + 1}`}
-                  value={draft.descricao}
-                  onChange={(event) =>
-                    atualizar(draft.key, { descricao: event.target.value })
-                  }
+                  id="novo-sistema-nome"
+                  maxLength={60}
+                  placeholder="Ex.: Sanca em drywall"
+                  value={novoNome}
+                  onChange={(event) => setNovoNome(event.target.value)}
                 />
               </div>
-              <div className="crm-drawer-cell" data-label="Un.">
-                <select
-                  className="select"
-                  aria-label={`Template: unidade do material ${index + 1}`}
-                  value={draft.unidade}
-                  onChange={(event) =>
-                    atualizar(draft.key, {
-                      unidade: event.target.value as OrcamentoUnidade,
-                    })
-                  }
-                >
-                  {unidades.map((unidade) => (
-                    <option key={unidade} value={unidade}>
-                      {unidade}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="crm-drawer-cell" data-label="Unitário">
-                <input
-                  className="input"
-                  inputMode="decimal"
-                  placeholder="0,00"
-                  aria-label={`Template: preço do material ${index + 1}`}
-                  value={draft.valor}
-                  onChange={(event) =>
-                    atualizar(draft.key, { valor: event.target.value })
-                  }
-                />
-              </div>
-              <div className="crm-drawer-cell" data-label="Qtd/m²">
-                {draft.quantidadeM2 === null ? (
-                  <span className="crm-drawer-auto">auto</span>
-                ) : (
+              <div className="crm-drawer-new-row">
+                <div className="field-group">
+                  <label className="field-label" htmlFor="novo-medida-a">
+                    Medida 1
+                  </label>
                   <input
                     className="input"
-                    inputMode="decimal"
-                    aria-label={`Template: quantidade por m² do material ${index + 1}`}
-                    value={draft.quantidadeM2Input}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      atualizar(draft.key, {
-                        quantidadeM2Input: value,
-                        quantidadeM2: parseQuantity(value),
-                      });
-                    }}
+                    id="novo-medida-a"
+                    maxLength={40}
+                    value={novoMedidaA}
+                    onChange={(event) => setNovoMedidaA(event.target.value)}
                   />
-                )}
+                </div>
+                <div className="field-group">
+                  <label className="field-label" htmlFor="novo-medida-b">
+                    Medida 2
+                  </label>
+                  <input
+                    className="input"
+                    id="novo-medida-b"
+                    maxLength={40}
+                    value={novoMedidaB}
+                    onChange={(event) => setNovoMedidaB(event.target.value)}
+                  />
+                </div>
               </div>
-              <button
-                type="button"
-                className="crm-line-remove"
-                aria-label={`Remover material ${index + 1} do template`}
-                onClick={() =>
-                  setDrafts((current) =>
-                    current.filter((item) => item.key !== draft.key),
-                  )
-                }
-              >
-                <Icon name="close" size={14} />
-              </button>
+              <label className="crm-drawer-check">
+                <input
+                  type="checkbox"
+                  checked={novoVaos}
+                  onChange={(event) => setNovoVaos(event.target.checked)}
+                />
+                Descontar vãos (m²)
+              </label>
+              <div className="crm-drawer-new-actions">
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => {
+                    setCriando(false);
+                    setAviso(null);
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-dark btn-sm"
+                  onClick={criarSistema}
+                  disabled={ocupado}
+                >
+                  Criar sistema
+                </button>
+              </div>
             </div>
-          ))}
+          ) : null}
+
+          {drafts.length === 0 && !criando ? (
+            <p className="crm-drawer-empty">
+              Nenhum material neste sistema ainda. Use “Adicionar material”
+              para montar o template do zero.
+            </p>
+          ) : (
+            <>
+              <div className="crm-drawer-lines-head" aria-hidden="true">
+                <span>Material</span>
+                <span>Un.</span>
+                <span>Unitário</span>
+                <span>Cálculo</span>
+                <span>Fator</span>
+                <span />
+              </div>
+
+              {drafts.map((draft, index) => (
+                <div className="crm-drawer-row" key={draft.key}>
+                  <div
+                    className="crm-drawer-cell crm-drawer-name"
+                    data-label="Material"
+                  >
+                    <input
+                      className="input"
+                      maxLength={120}
+                      aria-label={`Template: material ${index + 1}`}
+                      value={draft.descricao}
+                      onChange={(event) =>
+                        atualizar(draft.key, {
+                          descricao: event.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="crm-drawer-cell" data-label="Un.">
+                    <select
+                      className="select"
+                      aria-label={`Template: unidade do material ${index + 1}`}
+                      value={draft.unidade}
+                      onChange={(event) =>
+                        atualizar(draft.key, {
+                          unidade: event.target.value as OrcamentoUnidade,
+                        })
+                      }
+                    >
+                      {unidades.map((unidade) => (
+                        <option key={unidade} value={unidade}>
+                          {unidade}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="crm-drawer-cell" data-label="Unitário">
+                    <input
+                      className="input"
+                      inputMode="decimal"
+                      placeholder="0,00"
+                      aria-label={`Template: preço do material ${index + 1}`}
+                      value={draft.valor}
+                      onChange={(event) =>
+                        atualizar(draft.key, { valor: event.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="crm-drawer-cell" data-label="Cálculo">
+                    <select
+                      className="select"
+                      aria-label={`Template: cálculo do material ${index + 1}`}
+                      value={draft.regra}
+                      onChange={(event) => {
+                        const regra = event.target.value as RegraQuantidade;
+                        atualizar(draft.key, {
+                          regra,
+                          fatorInput:
+                            regra === "auto"
+                              ? ""
+                              : draft.fatorInput || "1",
+                        });
+                      }}
+                    >
+                      {isItemPadrao(draft.chave) ? (
+                        <option value="auto">Automática</option>
+                      ) : null}
+                      <option value="area">Área</option>
+                      <option value="comprimento">Comprimento</option>
+                      <option value="perimetro">Perímetro</option>
+                      <option value="fixo">Fixa</option>
+                    </select>
+                  </div>
+                  <div className="crm-drawer-cell" data-label="Fator">
+                    {draft.regra === "auto" ? (
+                      <span className="crm-drawer-auto">auto</span>
+                    ) : (
+                      <input
+                        className="input"
+                        inputMode="decimal"
+                        aria-label={`Template: fator do material ${index + 1}`}
+                        value={draft.fatorInput}
+                        onChange={(event) =>
+                          atualizar(draft.key, {
+                            fatorInput: event.target.value,
+                          })
+                        }
+                      />
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="crm-line-remove"
+                    aria-label={`Remover material ${index + 1} do template`}
+                    onClick={() =>
+                      setDrafts((current) =>
+                        current.filter((item) => item.key !== draft.key),
+                      )
+                    }
+                  >
+                    <Icon name="close" size={14} />
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
 
           <button
             type="button"
@@ -327,8 +530,8 @@ export function MaterialTemplateDrawer({
                   descricao: "",
                   unidade: "un",
                   valor: "",
-                  quantidadeM2: 0,
-                  quantidadeM2Input: "0",
+                  regra: "area",
+                  fatorInput: "1",
                 },
               ])
             }
@@ -337,22 +540,35 @@ export function MaterialTemplateDrawer({
           </button>
 
           <p className="crm-calc-note">
-            “auto” usa a regra do sistema (placas, perfis, parafusos). Itens
-            adicionais usam a quantidade por m² informada.
+            “Automática” usa a regra do sistema. “Área”, “Comprimento”,
+            “Perímetro” e “Fixa” multiplicam a medida pelo fator informado.
           </p>
 
           {aviso ? <p className="crm-saved">{aviso}</p> : null}
         </div>
 
         <footer className="crm-drawer-foot">
-          <button
-            type="button"
-            className="crm-link crm-drawer-reset"
-            onClick={restaurar}
-            disabled={ocupado}
-          >
-            Restaurar padrão
-          </button>
+          <div className="crm-drawer-foot-left">
+            {sistemaAtual?.padrao ? (
+              <button
+                type="button"
+                className="crm-link crm-drawer-reset"
+                onClick={restaurar}
+                disabled={ocupado}
+              >
+                Restaurar padrão
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="crm-link crm-drawer-reset"
+                onClick={excluirSistema}
+                disabled={ocupado}
+              >
+                {removendo ? "Confirmar exclusão" : "Excluir sistema"}
+              </button>
+            )}
+          </div>
           <div className="crm-drawer-foot-actions">
             <button
               type="button"
