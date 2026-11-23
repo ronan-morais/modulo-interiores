@@ -27,6 +27,11 @@ import {
   parseAmountToCents,
   removeLancamento,
 } from "@/lib/financeiro";
+import {
+  createOrcamentoMaterial,
+  removeOrcamentoMaterial,
+} from "@/lib/orcamento-material-db";
+import { sanitizeItens } from "@/lib/orcamento-material";
 
 const attempts = new Map<string, { count: number; blockedUntil: number }>();
 const MAX_ATTEMPTS = 6;
@@ -203,4 +208,45 @@ export async function deleteLancamento(formData: FormData) {
   }
 
   redirect(`/crm/financeiro?mes=${mes}`);
+}
+
+export async function saveOrcamentoMaterial(formData: FormData) {
+  await requireSession();
+
+  let parsed: unknown = null;
+  try {
+    parsed = JSON.parse(String(formData.get("itens") ?? "[]"));
+  } catch {
+    parsed = null;
+  }
+
+  const itens = sanitizeItens(parsed);
+  if (!itens.length) redirect("/crm/calculadora?erro=itens");
+
+  const titulo = readText(formData, "titulo", 120);
+  if (!titulo) redirect("/crm/calculadora?erro=titulo");
+
+  const id = await createOrcamentoMaterial({
+    titulo,
+    clienteNome: readText(formData, "clienteNome", 120),
+    clienteEmail: readText(formData, "clienteEmail", 160),
+    clienteWhatsapp: readText(formData, "clienteWhatsapp", 40),
+    observacoes: readText(formData, "observacoes", 2000),
+    itens,
+  });
+
+  revalidatePath("/crm/calculadora");
+  redirect(`/crm/calculadora/${id}?salvo=1`);
+}
+
+export async function deleteOrcamentoMaterial(formData: FormData) {
+  await requireSession();
+
+  const id = Number(formData.get("id"));
+  if (Number.isInteger(id) && id > 0) {
+    await removeOrcamentoMaterial(id);
+    revalidatePath("/crm/calculadora");
+  }
+
+  redirect("/crm/calculadora");
 }

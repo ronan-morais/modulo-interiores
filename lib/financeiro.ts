@@ -31,32 +31,7 @@ export function categoriasFor(tipo: LancamentoTipo): readonly string[] {
   return tipo === "entrada" ? entradaCategorias : saidaCategorias;
 }
 
-const brlFormatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
-
-export function formatBRL(cents: number): string {
-  return brlFormatter.format(cents / 100);
-}
-
-/** Aceita "1.500,00", "1500,00", "1.500" e "1500.50". */
-export function parseAmountToCents(raw: string): number | null {
-  const cleaned = raw.replace(/[^\d,.-]/g, "").trim();
-  if (!cleaned) return null;
-
-  let normalized = cleaned;
-  if (cleaned.includes(",")) {
-    normalized = cleaned.replace(/\./g, "").replace(",", ".");
-  } else if (/^\d{1,3}(\.\d{3})+$/.test(cleaned)) {
-    normalized = cleaned.replace(/\./g, "");
-  }
-
-  const value = Number(normalized);
-  if (!Number.isFinite(value) || value <= 0) return null;
-
-  return Math.round(value * 100);
-}
+export { formatBRL, parseAmountToCents } from "@/lib/money";
 
 const isoDateFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: "America/Sao_Paulo",

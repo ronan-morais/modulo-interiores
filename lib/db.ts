@@ -64,6 +64,21 @@ const schemaStatements = [
     valor_cents INTEGER NOT NULL
   )`,
   `CREATE INDEX IF NOT EXISTS idx_lancamentos_data ON lancamentos (data)`,
+  `CREATE TABLE IF NOT EXISTS orcamentos_material (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    criado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    titulo TEXT NOT NULL,
+    cliente_nome TEXT,
+    cliente_email TEXT,
+    cliente_whatsapp TEXT,
+    observacoes TEXT,
+    itens TEXT NOT NULL,
+    subtotal_cents INTEGER NOT NULL DEFAULT 0,
+    frete_cents INTEGER NOT NULL DEFAULT 0,
+    desconto_cents INTEGER NOT NULL DEFAULT 0,
+    total_cents INTEGER NOT NULL DEFAULT 0
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_orcamentos_material_criado_em ON orcamentos_material (criado_em)`,
 ];
 
 /** Cria a tabela na primeira gravação de cada instância do servidor. */
