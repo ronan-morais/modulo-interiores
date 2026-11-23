@@ -7,6 +7,8 @@ import { MaterialTemplateDrawer } from "@/components/MaterialTemplateDrawer";
 import { formatBRL, parseAmountToCents, parseQuantity } from "@/lib/money";
 import {
   areaDoProjeto,
+  descricaoRegra,
+  formulaArea,
   isSistemaMaterial,
   quantidadeDoItem,
   sistemasMaterial,
@@ -183,6 +185,14 @@ export function CrmOrcamentoBuilder({
     calcSistema === "parede"
       ? { a: "Comprimento (m)", b: "Altura (m)" }
       : { a: "Largura (m)", b: "Comprimento (m)" };
+  const medidaAValor = parseQuantity(calcMedidaA);
+  const medidaBValor = parseQuantity(calcMedidaB);
+  const areaFormula =
+    medidaAValor > 0 && medidaBValor > 0
+      ? calcSistema === "piso"
+        ? `${formatQuantity(medidaAValor)} × ${formatQuantity(medidaBValor)} m`
+        : `${formatQuantity(medidaAValor)} × ${formatQuantity(medidaBValor)} m − ${formatQuantity(parseQuantity(calcVaos))} m² de vãos`
+      : null;
 
   useEffect(() => {
     const atuais = medidasFromInputs(
@@ -493,6 +503,9 @@ export function CrmOrcamentoBuilder({
           <div>
             <span>Área calculada</span>
             <strong>{formatQuantity(areaM2)} m²</strong>
+            {areaFormula ? (
+              <p className="crm-area-formula">{areaFormula}</p>
+            ) : null}
           </div>
           <button
             type="button"
@@ -635,6 +648,25 @@ export function CrmOrcamentoBuilder({
         </div>
 
         {calcAviso ? <p className="crm-saved">{calcAviso}</p> : null}
+
+        <details className="crm-rules">
+          <summary>Como o material é calculado</summary>
+          <p className="crm-area-formula">{formulaArea(calcSistema)}</p>
+          <ul>
+            {materiais.map((row, index) => (
+              <li key={row.key}>
+                <span>{row.descricao || `Material ${index + 1}`}</span>
+                <span>
+                  {descricaoRegra(
+                    row.chave,
+                    calcSistema,
+                    row.quantidadeM2,
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </details>
 
         <p className="crm-calc-note">
           Ajustes aqui valem para este orçamento. Use “Gerenciar templates”

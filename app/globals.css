@@ -3554,6 +3554,88 @@ article[id] {
   font-variant-numeric: tabular-nums;
 }
 
+.crm-area-formula {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.crm-rules {
+  margin-top: 18px;
+}
+
+.crm-rules > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.crm-rules > summary::-webkit-details-marker {
+  display: none;
+}
+
+.crm-rules > summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(45deg) translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+.crm-rules[open] > summary {
+  color: var(--ink);
+}
+
+.crm-rules[open] > summary::after {
+  transform: rotate(-135deg) translateY(-1px);
+}
+
+.crm-rules ul {
+  list-style: none;
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.crm-rules li {
+  display: grid;
+  grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+  gap: 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+}
+
+.crm-rules li:last-child {
+  border-bottom: 0;
+}
+
+.crm-rules li span:first-child {
+  font-weight: 500;
+}
+
+.crm-rules li span:last-child {
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .crm-rules li {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+}
+
 /* Material pela área */
 .crm-area-grid {
   display: grid;

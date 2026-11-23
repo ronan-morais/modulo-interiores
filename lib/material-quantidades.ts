@@ -278,3 +278,53 @@ export function sanitizeTemplateItens(value: unknown): TemplateItem[] {
 
   return itens;
 }
+
+const regrasPorSistema: Record<SistemaMaterial, Record<string, string>> = {
+  parede: {
+    placa: "Área × 2 faces ÷ 2,16 m² por placa, com perda.",
+    montante: "Comprimento ÷ 0,40 m + 1 barra de 3 m.",
+    guia: "Comprimento × 2 (piso e teto) ÷ 3 m por barra.",
+    parafuso: "Área × 30 parafusos/m², com perda.",
+    fita: "Área × 3 m de junta/m² ÷ 90 m por rolo.",
+    massa: "Área ÷ 10 m² por saco de 20 kg, com perda.",
+    la: "Área da parede, sem perda.",
+  },
+  forro: {
+    placa: "Área ÷ 2,16 m² por placa, com perda.",
+    perfil: "Área ÷ 2,4 m² por barra de 3 m, com perda.",
+    guia: "Perímetro ÷ 3 m por barra.",
+    parafuso: "Área × 25 parafusos/m², com perda.",
+    fita: "Área × 1,5 m de junta/m² ÷ 90 m por rolo.",
+    massa: "Área ÷ 12 m² por saco de 20 kg, com perda.",
+  },
+  piso: {
+    piso: "Área com perda.",
+    manta: "Área × 1,05 (sobreposição).",
+    rodape: "Perímetro do ambiente em metros.",
+  },
+};
+
+export function formulaArea(sistema: SistemaMaterial): string {
+  if (sistema === "parede") {
+    return "Área = comprimento × altura − vãos.";
+  }
+  if (sistema === "forro") {
+    return "Área = largura × comprimento − vãos.";
+  }
+  return "Área = largura × comprimento.";
+}
+
+export function descricaoRegra(
+  chave: string,
+  sistema: SistemaMaterial,
+  quantidadeM2: number | null,
+): string {
+  if (quantidadeM2 !== null) {
+    return `Coeficiente informado: ${String(Number(quantidadeM2.toFixed(4))).replace(".", ",")} por m².`;
+  }
+
+  return (
+    regrasPorSistema[sistema][chave] ??
+    "Quantidade calculada pela área; ajuste manualmente se precisar."
+  );
+}
