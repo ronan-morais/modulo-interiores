@@ -44,6 +44,26 @@ const schemaStatements = [
     user_agent TEXT
   )`,
   `CREATE INDEX IF NOT EXISTS idx_orcamentos_criado_em ON orcamentos (criado_em)`,
+  `CREATE TABLE IF NOT EXISTS clientes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    criado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    nome TEXT NOT NULL,
+    whatsapp TEXT,
+    email TEXT,
+    cidade TEXT,
+    bairro TEXT,
+    observacoes TEXT
+  )`,
+  `CREATE TABLE IF NOT EXISTS lancamentos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    criado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    data TEXT NOT NULL,
+    tipo TEXT NOT NULL,
+    categoria TEXT NOT NULL,
+    descricao TEXT NOT NULL,
+    valor_cents INTEGER NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_lancamentos_data ON lancamentos (data)`,
 ];
 
 /** Cria a tabela na primeira gravação de cada instância do servidor. */

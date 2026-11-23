@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BrandMark } from "@/components/Brand";
+import { CrmTabs } from "@/components/CrmTabs";
 import { Icon } from "@/components/Icon";
 import {
   formatTimestamp,
@@ -63,6 +64,8 @@ export default async function LeadPage({
       </header>
 
       <main id="conteudo" className="container crm-main">
+        <CrmTabs current="contatos" />
+
         <div className="crm-detail-head">
           <div>
             <p className="crm-muted">

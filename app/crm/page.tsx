@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandMark } from "@/components/Brand";
+import { CrmTabs } from "@/components/CrmTabs";
 import { Icon } from "@/components/Icon";
 import {
   crmConfigured,
@@ -70,6 +71,8 @@ export default async function CrmPage({
       </header>
 
       <main id="conteudo" className="container crm-main">
+        <CrmTabs current="contatos" />
+
         <nav className="crm-filters" aria-label="Filtrar por status">
           <Link
             href={`/crm${searchSuffix}`}
@@ -133,7 +136,7 @@ export default async function CrmPage({
           </div>
         ) : (
           <div className="crm-table-wrap">
-            <table className="crm-table">
+            <table className="crm-table crm-table-leads">
               <thead>
                 <tr>
                   <th scope="col">Contato</th>

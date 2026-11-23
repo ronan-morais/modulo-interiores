@@ -13,6 +13,20 @@ import {
   removeLead,
   updateLead,
 } from "@/lib/crm";
+import {
+  createCliente,
+  removeCliente,
+  updateCliente,
+  type ClienteInput,
+} from "@/lib/clientes";
+import {
+  categoriasFor,
+  createLancamento,
+  isLancamentoTipo,
+  normalizeMonth,
+  parseAmountToCents,
+  removeLancamento,
+} from "@/lib/financeiro";
 
 const attempts = new Map<string, { count: number; blockedUntil: number }>();
 const MAX_ATTEMPTS = 6;
@@ -20,6 +34,12 @@ const BLOCK_WINDOW_MS = 10 * 60 * 1000;
 
 async function requireSession(): Promise<void> {
   if (!(await isAuthenticated())) redirect("/crm");
+}
+
+function readText(formData: FormData, name: string, max: number): string {
+  return String(formData.get(name) ?? "")
+    .trim()
+    .slice(0, max);
 }
 
 export async function login(formData: FormData) {
@@ -99,4 +119,88 @@ export async function deleteLead(formData: FormData) {
   }
 
   redirect("/crm");
+}
+
+function clienteFromForm(formData: FormData): ClienteInput {
+  return {
+    nome: readText(formData, "nome", 120),
+    whatsapp: readText(formData, "whatsapp", 40),
+    email: readText(formData, "email", 160),
+    cidade: readText(formData, "cidade", 80),
+    bairro: readText(formData, "bairro", 80),
+    observacoes: readText(formData, "observacoes", 2000),
+  };
+}
+
+export async function saveCliente(formData: FormData) {
+  await requireSession();
+
+  const input = clienteFromForm(formData);
+  if (!input.nome) redirect("/crm/clientes?erro=nome");
+
+  const id = Number(formData.get("id"));
+  if (Number.isInteger(id) && id > 0) {
+    await updateCliente(id, input);
+  } else {
+    await createCliente(input);
+  }
+
+  revalidatePath("/crm/clientes");
+  redirect("/crm/clientes?salvo=1");
+}
+
+export async function deleteCliente(formData: FormData) {
+  await requireSession();
+
+  const id = Number(formData.get("id"));
+  if (Number.isInteger(id) && id > 0) {
+    await removeCliente(id);
+    revalidatePath("/crm/clientes");
+  }
+
+  redirect("/crm/clientes");
+}
+
+export async function saveLancamento(formData: FormData) {
+  await requireSession();
+
+  const mes = normalizeMonth(formData.get("mes"));
+  const back = `/crm/financeiro?mes=${mes}`;
+  const data = String(formData.get("data") ?? "");
+  const tipo = formData.get("tipo");
+  const descricao = readText(formData, "descricao", 160);
+  const valorCents = parseAmountToCents(String(formData.get("valor") ?? ""));
+  const categoria = readText(formData, "categoria", 40);
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) redirect(`${back}&erro=data`);
+  if (!isLancamentoTipo(tipo)) redirect(`${back}&erro=tipo`);
+  if (!descricao) redirect(`${back}&erro=descricao`);
+  if (!valorCents) redirect(`${back}&erro=valor`);
+  if (!categoriasFor(tipo).includes(categoria)) {
+    redirect(`${back}&erro=categoria`);
+  }
+
+  await createLancamento({
+    data,
+    tipo,
+    categoria,
+    descricao,
+    valorCents,
+  });
+
+  revalidatePath("/crm/financeiro");
+  redirect(`/crm/financeiro?mes=${data.slice(0, 7)}&salvo=1`);
+}
+
+export async function deleteLancamento(formData: FormData) {
+  await requireSession();
+
+  const mes = normalizeMonth(formData.get("mes"));
+  const id = Number(formData.get("id"));
+  if (Number.isInteger(id) && id > 0) {
+    await removeLancamento(id);
+    revalidatePath("/crm/financeiro");
+  }
+
+  redirect(`/crm/financeiro?mes=${mes}`);
 }
