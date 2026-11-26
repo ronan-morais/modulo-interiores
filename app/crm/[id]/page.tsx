@@ -126,10 +126,6 @@ export default async function LeadPage({
                 <input className="input" name="email" type="email" defaultValue={lead.email ?? ""} maxLength={160} />
               </label>
               <label className="field-group">
-                <span className="field-label">Área total (m²)</span>
-                <input className="input" name="area" type="number" min={1} defaultValue={lead.areaM2 ?? ""} />
-              </label>
-              <label className="field-group">
                 <span className="field-label">Ambientes</span>
                 <input className="input" name="ambientes" type="number" min={1} defaultValue={lead.ambientes ?? ""} />
               </label>
