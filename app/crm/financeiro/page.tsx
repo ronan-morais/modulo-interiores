@@ -93,6 +93,12 @@ export default async function FinanceiroPage({
         </div>
       </div>
 
+      {params.salvo ? (
+        <p className="crm-saved" role="status">
+          Lançamento salvo.
+        </p>
+      ) : null}
+
       <div className="crm-detail-grid">
         <section aria-labelledby="lancamentos-title">
           <div className="crm-list-head">
@@ -245,14 +251,6 @@ export default async function FinanceiroPage({
               />
             </div>
 
-            <div className="crm-form-actions">
-              <button className="btn btn-dark btn-md" type="submit">
-                Registrar
-              </button>
-              {params.salvo ? (
-                <span className="crm-saved">Lançamento salvo.</span>
-              ) : null}
-            </div>
           </form>
         </Drawer>
       </div>
