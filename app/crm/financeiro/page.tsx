@@ -48,7 +48,10 @@ export default async function FinanceiroPage({
   const mesAtual = todayIso().slice(0, 7);
 
   return (
-    <CrmShell title="Financeiro" current="financeiro">
+    <CrmShell
+      title="Financeiro"
+      subtitle="Entradas e saídas do caixa, mês a mês."
+    >
       <div className="crm-monthbar">
         <Link
           className="crm-month-btn"

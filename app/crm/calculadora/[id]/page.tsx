@@ -74,12 +74,14 @@ export default async function OrcamentoMaterialPage({
   ].join("\n");
 
   return (
-    <CrmShell title="Orçamento de material" current="calculadora">
-      <div className="crm-quote-actions">
-        <Link className="crm-link" href="/crm/calculadora">
-          Voltar à calculadora
-        </Link>
+    <CrmShell
+      title="Orçamento de material"
+      subtitle={`${numero} · ${data} · ${orcamento.clienteNome || "Sem cliente"}`}
+      actions={
         <div className="crm-quote-send">
+          <Link className="crm-link" href="/crm/calculadora">
+            Voltar
+          </Link>
           <QuoteEmailButton
             defaultEmail={orcamento.clienteEmail}
             subject={assunto}
@@ -87,8 +89,8 @@ export default async function OrcamentoMaterialPage({
           />
           <PrintButton />
         </div>
-      </div>
-
+      }
+    >
       {salvo ? <p className="crm-saved">Orçamento salvo.</p> : null}
 
       <article className="quote-doc">

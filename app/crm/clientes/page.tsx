@@ -22,7 +22,10 @@ export default async function ClientesPage({
   const clientes = await listClientes();
 
   return (
-    <CrmShell title="Clientes" current="clientes">
+    <CrmShell
+      title="Clientes"
+      subtitle="Quem já pediu ou fechou serviço, com contato à mão."
+    >
       <div className="crm-detail-grid">
         <section aria-labelledby="clientes-title">
           <div className="crm-list-head">

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandMark } from "@/components/Brand";
-import { CrmTabs } from "@/components/CrmTabs";
+import { CrmShell } from "@/components/CrmShell";
 import { Icon } from "@/components/Icon";
 import {
   crmConfigured,
@@ -13,7 +13,7 @@ import {
   statusLabel,
   type LeadStatus,
 } from "@/lib/crm";
-import { login, logout } from "./actions";
+import { login } from "./actions";
 
 export const metadata: Metadata = {
   title: "Contatos",
@@ -47,33 +47,11 @@ export default async function CrmPage({
   const searchSuffix = query ? `?q=${encodeURIComponent(query)}` : "";
 
   return (
-    <div className="crm-page">
-      <header className="crm-top">
-        <div className="container crm-top-inner">
-          <div className="crm-brand">
-            <BrandMark />
-            <div>
-              <p className="crm-brand-label">Módulo Interiores</p>
-              <h1>Contatos</h1>
-            </div>
-          </div>
-          <div className="crm-actions">
-            <Link className="crm-link" href="/">
-              Ver site
-            </Link>
-            <form action={logout}>
-              <button className="btn btn-outline btn-sm" type="submit">
-                Sair
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-
-      <main id="conteudo" className="container crm-main">
-        <CrmTabs current="contatos" />
-
-        <nav className="crm-filters" aria-label="Filtrar por status">
+    <CrmShell
+      title="Contatos"
+      subtitle="Pedidos recebidos pelo formulário de orçamento do site."
+    >
+      <nav className="crm-filters" aria-label="Filtrar por status">
           <Link
             href={`/crm${searchSuffix}`}
             aria-current={status ? undefined : "page"}
@@ -193,8 +171,7 @@ export default async function CrmPage({
             ? "Mostrando os 200 contatos mais recentes."
             : `${leads.length} ${leads.length === 1 ? "contato" : "contatos"} nesta visão.`}
         </p>
-      </main>
-    </div>
+    </CrmShell>
   );
 }
 

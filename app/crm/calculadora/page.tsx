@@ -45,12 +45,10 @@ export default async function CalculadoraPage({
   ]);
 
   return (
-    <CrmShell title="Calculadora" current="calculadora">
-      <p className="crm-calc-intro">
-        Informe as medidas para calcular a área e a quantidade de material.
-        Ajuste os itens, salve e envie a proposta em PDF.
-      </p>
-
+    <CrmShell
+      title="Calculadora"
+      subtitle="Informe as medidas, ajuste os itens e salve a proposta em PDF."
+    >
       {erro ? (
         <p className="crm-alert" role="alert">
           {erros[erro] ?? "Confira os dados e tente de novo."}
