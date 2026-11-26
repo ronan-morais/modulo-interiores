@@ -5174,3 +5174,19 @@ article[id] {
     padding-top: 0;
   }
 }
+
+
+.crm-anexos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crm-anexo-thumb {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+}

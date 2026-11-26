@@ -24,6 +24,7 @@ type FormState = {
   timeline: string;
   details: string;
   fileName: string;
+  fileData: string;
   name: string;
   phone: string;
   email: string;
@@ -40,6 +41,7 @@ const initialState: FormState = {
   timeline: "Em até 30 dias",
   details: "",
   fileName: "",
+  fileData: "",
   name: "",
   phone: "",
   email: "",
@@ -119,6 +121,29 @@ export function QuoteForm() {
     setStep(2);
   }
 
+  async function lerArquivo(file: File) {
+    update("fileName", file.name);
+    if (file.type.startsWith("image/")) {
+      const img = await new Promise<HTMLImageElement>((ok, fail) => {
+        const tag = new Image();
+        tag.onload = () => ok(tag);
+        tag.onerror = fail;
+        tag.src = URL.createObjectURL(file);
+      });
+      const escala = Math.min(1, 1400 / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * escala);
+      canvas.height = Math.round(img.height * escala);
+      canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      update("fileData", canvas.toDataURL("image/jpeg", 0.82));
+      return;
+    }
+    if (file.size > 1_500_000) return;
+    const reader = new FileReader();
+    reader.onload = () => update("fileData", String(reader.result ?? ""));
+    reader.readAsDataURL(file);
+  }
+
   async function saveLead(): Promise<boolean> {
     try {
       const response = await fetch("/api/orcamentos", {
@@ -134,6 +159,7 @@ export function QuoteForm() {
           timeline: form.timeline,
           details: form.details,
           fileName: form.fileName,
+          fileData: form.fileData,
           name: form.name,
           phone: form.phone,
           email: form.email,
@@ -452,9 +478,10 @@ export function QuoteForm() {
                     name="file"
                     type="file"
                     accept=".jpg,.jpeg,.png,.pdf"
-                    onChange={(event) =>
-                      update("fileName", event.target.files?.[0]?.name ?? "")
-                    }
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void lerArquivo(file);
+                    }}
                   />
                   <label className="upload" htmlFor="file-upload">
                     <Icon name="upload" size={18} />

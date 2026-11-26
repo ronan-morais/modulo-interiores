@@ -103,6 +103,16 @@ const schemaStatements = [
     ordem INTEGER NOT NULL DEFAULT 0
   )`,
   `CREATE INDEX IF NOT EXISTS idx_materiais_template_sistema ON materiais_template (sistema, ordem)`,
+  `CREATE TABLE IF NOT EXISTS anexos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lead_id INTEGER NOT NULL,
+    nome TEXT NOT NULL,
+    tipo TEXT NOT NULL,
+    tamanho INTEGER NOT NULL DEFAULT 0,
+    dados TEXT NOT NULL,
+    criado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_anexos_lead ON anexos (lead_id)`,
 ];
 
 /** Cria a tabela na primeira gravação de cada instância do servidor. */

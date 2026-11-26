@@ -106,6 +106,14 @@ export async function POST(request: Request) {
     });
 
     const leadId = Number(result.lastInsertRowid);
+    const fileData = typeof payload.fileData === "string" ? payload.fileData : "";
+    const match = /^data:([^;]+);base64,([\s\S]+)$/.exec(fileData);
+    if (match && match[2].length < 3_000_000) {
+      await getDb().execute({
+        sql: `INSERT INTO anexos (lead_id, nome, tipo, tamanho, dados) VALUES (?, ?, ?, ?, ?)`,
+        args: [leadId, arquivo || "anexo", match[1], Math.round(match[2].length * 0.75), match[2]],
+      });
+    }
 
     // Cria o contato no CRM na entrada do lead (status inicial), se ainda não existir.
     try {

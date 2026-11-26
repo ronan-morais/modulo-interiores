@@ -16,6 +16,7 @@ import {
   listarMateriaisDoLead,
   type MaterialDoLead,
 } from "@/lib/lead-material-db";
+import { anexosDoLead } from "@/lib/anexos";
 import { SERVICO_POR_ID } from "@/lib/lead-material";
 import { formatBRL } from "@/lib/money";
 
@@ -57,6 +58,7 @@ export default async function LeadPage({
   if (!lead) notFound();
 
   const materiais = await listarMateriaisDoLead(lead.id);
+  const anexos = await anexosDoLead(lead.id);
   const servicosComMotor = lead.servicos.filter((s) => SERVICO_POR_ID[s.id]).length;
   const waHref = whatsappHref(lead.whatsapp);
   const telHref = lead.whatsapp ? `tel:+${lead.whatsapp.replace(/\D/g, "")}` : null;
@@ -141,7 +143,24 @@ export default async function LeadPage({
             </div>
             <div>
               <dt>Fotos ou planta</dt>
-              <dd>{lead.arquivo || "Nenhum arquivo anexado"}</dd>
+              <dd>
+                {anexos.length === 0 ? (
+                  lead.arquivo || "Nenhum arquivo anexado"
+                ) : (
+                  <span className="crm-anexos">
+                    {anexos.map((a) => (
+                      <a key={a.id} href={"/api/anexos/" + a.id} target="_blank" rel="noreferrer">
+                        {a.tipo.startsWith("image/") ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={"/api/anexos/" + a.id} alt={a.nome} className="crm-anexo-thumb" />
+                        ) : (
+                          a.nome
+                        )}
+                      </a>
+                    ))}
+                  </span>
+                )}
+              </dd>
             </div>
           </dl>
         </section>
