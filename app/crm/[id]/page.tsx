@@ -149,10 +149,10 @@ export default async function LeadPage({
                 ) : (
                   <span className="crm-anexos">
                     {anexos.map((a) => (
-                      <a key={a.id} href={"/api/anexos/" + a.id} target="_blank" rel="noreferrer">
+                      <a key={a.id} href={"/crm/anexos/" + a.id} target="_blank" rel="noreferrer">
                         {a.tipo.startsWith("image/") ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={"/api/anexos/" + a.id} alt={a.nome} className="crm-anexo-thumb" />
+                          <img src={"/crm/anexos/" + a.id} alt={a.nome} className="crm-anexo-thumb" />
                         ) : (
                           a.nome
                         )}

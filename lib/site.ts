@@ -39,26 +39,44 @@ export type Service = {
 
 export const services: Service[] = [
   {
-    id: "divisorias-drywall",
+    id: "paredes-drywall",
     index: "01",
     category: "Drywall",
-    title: "Paredes, sancas, tetos e móveis em drywall",
+    title: "Paredes de drywall",
     homeDescription:
-      "Paredes, divisórias, sancas, rebaixamento de teto, forro em drywall e móveis sob medida.",
+      "Divisórias e paredes com estrutura metálica e isolamento acústico.",
     pageDescription:
-      "Estrutura metálica com montantes reforçados, isolamento em lã de vidro e fechamento em placas. Executamos paredes e divisórias, sancas, rebaixamento de teto e forro em drywall — além de armários, closets, guarda-roupas e nichos — prontos para pintura, sem demolição e sem entulho.",
-    lead: "Parede, teto e móvel no mesmo acabamento.",
+      "Estrutura metálica com montantes reforçados, isolamento em lã de vidro e fechamento em placas. Executamos paredes e divisórias prontas para pintura, sem demolição e sem entulho.",
+    lead: "Divisória que resolve o layout.",
     bullets: [
       "Paredes e divisórias com isolamento acústico",
-      "Sancas, rebaixamento de teto e forro em drywall",
-      "Móveis: armários, closets, guarda-roupas e nichos",
+      "Montantes reforçados e vãos de porta e janela",
+      "Pronto para pintura, sem entulho",
     ],
     image: "/images/divisorias-drywall-bh.webp",
     alt: "Sala integrada com divisória em drywall e porta de vidro",
   },
   {
-    id: "forro-pvc",
+    id: "moveis-drywall",
     index: "02",
+    category: "Drywall",
+    title: "Móveis de drywall",
+    homeDescription:
+      "Closets, guarda-roupas, nichos de TV e bancadas sob medida.",
+    pageDescription:
+      "Armários, closets, guarda-roupas, nichos e bancadas em drywall, desenhados sob medida e executados com o mesmo acabamento da parede. Estrutura metálica, prateleiras e reforços para cargas, prontos para pintura.",
+    lead: "Mobiliário que nasce da parede.",
+    bullets: [
+      "Nichos, closets e guarda-roupas",
+      "Bancadas e estantes sob medida",
+      "Mesmo acabamento da parede",
+    ],
+    image: "/images/divisorias-drywall-bh.webp",
+    alt: "Nicho e estante em drywall integrados à parede",
+  },
+  {
+    id: "forro-pvc",
+    index: "03",
     category: "Forro",
     title: "Forro de PVC",
     homeDescription:
@@ -76,7 +94,7 @@ export const services: Service[] = [
   },
   {
     id: "forro-modular",
-    index: "03",
+    index: "04",
     category: "Forro",
     title: "Forro modular",
     homeDescription:
@@ -94,11 +112,11 @@ export const services: Service[] = [
   },
   {
     id: "forro-placa-gesso",
-    index: "04",
+    index: "05",
     category: "Forro",
-    title: "Forro em placa de gesso",
+    title: "Forro de drywall",
     homeDescription:
-      "Forro liso, luz indireta e spots embutidos desenhados para cada ambiente.",
+      "Sancas, rebaixamento e iluminação embutida desenhados para cada ambiente.",
     pageDescription:
       "Forro em placa de gesso com acabamento liso, iluminação indireta, spots e cortineiros desenhados sob medida. Montagem em estrutura seca sob a laje, com acabamento em gesso liso ou massa corrida, sem emendas aparentes.",
     lead: "Desenho de luz que valoriza cada ambiente.",
@@ -112,7 +130,7 @@ export const services: Service[] = [
   },
   {
     id: "piso-modular",
-    index: "05",
+    index: "06",
     category: "Piso",
     title: "Piso modular",
     homeDescription:
@@ -130,7 +148,7 @@ export const services: Service[] = [
   },
   {
     id: "piso-vinilico",
-    index: "06",
+    index: "07",
     category: "Piso",
     title: "Piso vinílico",
     homeDescription:
@@ -150,7 +168,7 @@ export const services: Service[] = [
 
 export const maintenance = {
   id: "manutencao",
-  index: "07",
+  index: "08",
   category: "Manutenção",
   title: "Manutenção e reparo",
   homeDescription:
