@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CrmShell } from "@/components/CrmShell";
+import { Drawer } from "@/components/Drawer";
 import { Icon } from "@/components/Icon";
 import { isAuthenticated, whatsappHref } from "@/lib/crm";
 import { listClientes, type Cliente } from "@/lib/clientes";
@@ -59,25 +60,22 @@ export default async function ClientesPage({
           )}
         </section>
 
-        <aside className="crm-panel" aria-labelledby="novo-cliente-title">
-          <h2 id="novo-cliente-title">Novo cliente</h2>
-
+        <Drawer
+          title="Novo cliente"
+          formId="form-cliente-novo"
+          submitLabel="Salvar cliente"
+          defaultOpen={Boolean(erro)}
+        >
           {erro ? (
             <p className="crm-alert" role="alert">
               Informe o nome do cliente.
             </p>
           ) : null}
 
-          <form action={saveCliente} className="crm-form">
+          <form id="form-cliente-novo" action={saveCliente} className="crm-form">
             <ClienteFields idPrefix="novo" />
-            <div className="crm-form-actions">
-              <button className="btn btn-dark btn-md" type="submit">
-                Salvar cliente
-              </button>
-              {salvo ? <span className="crm-saved">Cliente salvo.</span> : null}
-            </div>
           </form>
-        </aside>
+        </Drawer>
       </div>
     </CrmShell>
   );
@@ -123,29 +121,27 @@ function ClienteRow({ cliente }: { cliente: Cliente }) {
         <p className="crm-muted crm-client-note">{cliente.observacoes}</p>
       ) : null}
 
-      <details className="crm-client-edit">
-        <summary>Editar cadastro</summary>
-        <form action={saveCliente} className="crm-form">
-          <input type="hidden" name="id" value={cliente.id} />
-          <ClienteFields cliente={cliente} idPrefix={`edit-${cliente.id}`} />
-          <div className="crm-form-actions">
-            <button className="btn btn-dark btn-sm" type="submit">
-              Salvar
-            </button>
-          </div>
-        </form>
-
-        <details className="crm-danger">
-          <summary>Remover cliente</summary>
-          <p>O cadastro sai da lista e não pode ser recuperado.</p>
-          <form action={deleteCliente}>
+      <div className="crm-client-actions">
+        <Drawer
+          trigger="link"
+          triggerLabel="Editar"
+          title={`Editar ${cliente.nome}`}
+          formId={`form-cliente-${cliente.id}`}
+        >
+          <form id={`form-cliente-${cliente.id}`} action={saveCliente} className="crm-form">
             <input type="hidden" name="id" value={cliente.id} />
+            <ClienteFields cliente={cliente} idPrefix={`edit-${cliente.id}`} />
+          </form>
+
+          <form action={deleteCliente} className="crm-sheet-danger">
+            <input type="hidden" name="id" value={cliente.id} />
+            <p className="crm-muted">O cadastro sai da lista e não pode ser recuperado.</p>
             <button className="btn btn-outline btn-sm" type="submit">
-              Confirmar remoção
+              Remover cliente
             </button>
           </form>
-        </details>
-      </details>
+        </Drawer>
+      </div>
     </li>
   );
 }

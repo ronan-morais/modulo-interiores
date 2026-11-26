@@ -5576,3 +5576,43 @@ article[id] {
     padding-bottom: 96px;
   }
 }
+
+.crm-sheet-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: border-color 0.18s, background-color 0.18s;
+}
+
+.crm-sheet-trigger:hover {
+  border-color: var(--ink);
+  background: var(--surface);
+}
+
+.crm-client-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.crm-sheet-danger {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 720px) {
+  .crm-shell .crm-main {
+    padding-bottom: 104px;
+  }
+}

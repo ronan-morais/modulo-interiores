@@ -6,6 +6,8 @@ type Props = {
   title: string;
   formId: string;
   submitLabel?: string;
+  trigger?: "fab" | "link";
+  triggerLabel?: string;
   defaultOpen?: boolean;
   children: React.ReactNode;
 };
@@ -14,6 +16,8 @@ export function Drawer({
   title,
   formId,
   submitLabel = "Salvar",
+  trigger = "fab",
+  triggerLabel = "Editar",
   defaultOpen = false,
   children,
 }: Props) {
@@ -38,15 +42,25 @@ export function Drawer({
 
   return (
     <>
-      <button
-        className="crm-fab"
-        type="button"
-        aria-label={title}
-        title={title}
-        onClick={() => setOpen(true)}
-      >
-        <span aria-hidden="true">+</span>
-      </button>
+      {trigger === "fab" ? (
+        <button
+          className="crm-fab"
+          type="button"
+          aria-label={title}
+          title={title}
+          onClick={() => setOpen(true)}
+        >
+          <span aria-hidden="true">+</span>
+        </button>
+      ) : (
+        <button
+          className="crm-sheet-trigger"
+          type="button"
+          onClick={() => setOpen(true)}
+        >
+          {triggerLabel}
+        </button>
+      )}
 
       {open ? (
         <div className="crm-sheet">
