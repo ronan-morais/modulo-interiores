@@ -156,9 +156,9 @@ export default async function FinanceiroPage({
         </section>
 
         <Drawer
-          label="Novo lançamento"
           title="Novo lançamento"
           formId="form-lancamento"
+          submitLabel="Salvar lançamento"
           defaultOpen={Boolean(params.erro)}
         >
 
