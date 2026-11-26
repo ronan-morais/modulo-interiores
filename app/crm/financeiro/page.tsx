@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CrmShell } from "@/components/CrmShell";
+import { Drawer } from "@/components/Drawer";
 import { Icon } from "@/components/Icon";
 import { isAuthenticated } from "@/lib/crm";
 import {
@@ -148,8 +149,12 @@ export default async function FinanceiroPage({
           )}
         </section>
 
-        <aside className="crm-panel" aria-labelledby="novo-lancamento-title">
-          <h2 id="novo-lancamento-title">Novo lançamento</h2>
+        <Drawer
+          label="Novo lançamento"
+          title="Novo lançamento"
+          formId="form-lancamento"
+          defaultOpen={Boolean(params.erro)}
+        >
 
           {params.erro ? (
             <p className="crm-alert" role="alert">
@@ -157,7 +162,7 @@ export default async function FinanceiroPage({
             </p>
           ) : null}
 
-          <form action={saveLancamento} className="crm-form">
+          <form id="form-lancamento" action={saveLancamento} className="crm-form">
             <input type="hidden" name="mes" value={mes} />
 
             <div className="field-row">
@@ -249,7 +254,7 @@ export default async function FinanceiroPage({
               ) : null}
             </div>
           </form>
-        </aside>
+        </Drawer>
       </div>
     </CrmShell>
   );
