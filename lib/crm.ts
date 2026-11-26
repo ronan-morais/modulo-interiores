@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { ensureSchema, getDb } from "@/lib/db";
 
 export const leadStatuses = [
-  { id: "novo", label: "Novo" },
+  { id: "novo", label: "Contato inicial" },
   { id: "em_contato", label: "Em contato" },
   { id: "orcado", label: "Orçado" },
   { id: "ganho", label: "Ganho" },
@@ -136,6 +136,9 @@ async function ensureCrmColumns(): Promise<void> {
       "mao_obra_descricao",
       "ALTER TABLE orcamentos_material ADD COLUMN mao_obra_descricao TEXT",
     ],
+    ["lead_id", "ALTER TABLE orcamentos_material ADD COLUMN lead_id INTEGER"],
+    ["servico_id", "ALTER TABLE orcamentos_material ADD COLUMN servico_id TEXT"],
+    ["contato_id", "ALTER TABLE orcamentos_material ADD COLUMN contato_id INTEGER"],
   ];
 
   for (const [column, sql] of materialAdditions) {

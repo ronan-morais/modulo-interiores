@@ -8,6 +8,7 @@ import {
   SESSION_MAX_AGE,
   createSessionToken,
   credentialsValid,
+  getLead,
   isAuthenticated,
   isLeadStatus,
   removeLead,
@@ -43,6 +44,8 @@ import {
   replaceMaterialTemplate,
   resetMaterialTemplate,
 } from "@/lib/material-templates-db";
+import { SERVICO_POR_ID, itensDoServico, areaPorServico } from "@/lib/lead-material";
+import { salvarMaterialDoLead } from "@/lib/lead-material-db";
 
 const attempts = new Map<string, { count: number; blockedUntil: number }>();
 const MAX_ATTEMPTS = 6;
@@ -334,4 +337,43 @@ export async function deleteMaterialSystemAction(
   const removed = await deleteSistemaMaterial(String(sistema ?? "").slice(0, 40));
   revalidatePath("/crm/calculadora");
   return removed;
+}
+
+export async function gerarMateriaisDoLead(formData: FormData) {
+  await requireSession();
+
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id <= 0) redirect("/crm");
+
+  const lead = await getLead(id);
+  if (!lead) redirect("/crm");
+
+  const servicos = lead.servicos.filter((s) => SERVICO_POR_ID[s.id]);
+  const area = lead.areaM2 ?? 0;
+
+  if (servicos.length > 0 && area > 0) {
+    const fatia = areaPorServico(area, servicos.length);
+    for (const servico of servicos) {
+      const itens = itensDoServico(SERVICO_POR_ID[servico.id], fatia);
+      await salvarMaterialDoLead({
+        leadId: id,
+        servicoId: servico.id,
+        titulo: servico.titulo + " — " + fatia.toFixed(2) + " m² (lead #" + id + ")",
+        clienteNome: lead.nome,
+        clienteEmail: lead.email,
+        clienteWhatsapp: lead.whatsapp,
+        observacoes:
+          "Estimativa pela área informada no site (" + area + " m² no total" +
+          (lead.ambientes ? ", " + lead.ambientes + " ambientes" : "") +
+          "). Confirmar medidas no local antes de comprar.",
+        itens,
+        maoObraCents: 0,
+        maoObraDescricao: "",
+      });
+    }
+  }
+
+  revalidatePath("/crm");
+  revalidatePath("/crm/" + id);
+  redirect("/crm/" + id + "?materiais=1");
 }

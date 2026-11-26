@@ -171,6 +171,8 @@ export const maintenanceWhatsappHref = `${site.whatsapp.href}?text=${encodeURICo
 export const quoteOptions = [
   ...services.map(({ id, index, title }) => ({ id, index, title })),
   { id: maintenance.id, index: maintenance.index, title: maintenance.title },
+  // Serviço executado junto do drywall, oferecido no formulário de cotação.
+  { id: "moveis-drywall", index: "08", title: "Móveis de drywall (nicho, closet, bancada)" },
 ];
 
 export type Advantage = {

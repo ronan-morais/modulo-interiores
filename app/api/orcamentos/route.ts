@@ -105,8 +105,36 @@ export async function POST(request: Request) {
       ],
     });
 
+    const leadId = Number(result.lastInsertRowid);
+
+    // Cria o contato no CRM na entrada do lead (status inicial), se ainda não existir.
+    try {
+      const existente = await getDb().execute({
+        sql: `SELECT id FROM clientes
+               WHERE (? IS NOT NULL AND whatsapp = ?) OR (? IS NOT NULL AND email = ?)
+               LIMIT 1`,
+        args: [whatsapp || null, whatsapp || null, email || null, email || null],
+      });
+      if (existente.rows.length === 0) {
+        await getDb().execute({
+          sql: `INSERT INTO clientes (nome, whatsapp, email, cidade, bairro, observacoes)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+          args: [
+            nome,
+            whatsapp || null,
+            email || null,
+            cidade,
+            bairro || null,
+            `Contato inicial · lead #${leadId} (formulário do site)`,
+          ],
+        });
+      }
+    } catch (error) {
+      console.error("Falha ao criar contato a partir do lead", error);
+    }
+
     return NextResponse.json(
-      { id: Number(result.lastInsertRowid) },
+      { id: leadId },
       { status: 201, headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {

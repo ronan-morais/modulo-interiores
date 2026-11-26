@@ -12,7 +12,10 @@ import {
   statusLabel,
   whatsappHref,
 } from "@/lib/crm";
-import { deleteLead, logout, saveLead } from "../actions";
+import { deleteLead, gerarMateriaisDoLead, logout, saveLead } from "../actions";
+import { listarMateriaisDoLead } from "@/lib/lead-material-db";
+import { SERVICO_POR_ID } from "@/lib/lead-material";
+import { formatBRL } from "@/lib/money";
 
 export const metadata: Metadata = {
   title: "Contato",
@@ -36,6 +39,8 @@ export default async function LeadPage({
   const lead = await getLead(leadId);
   if (!lead) notFound();
 
+  const materiais = await listarMateriaisDoLead(lead.id);
+  const servicosComMotor = lead.servicos.filter((s) => SERVICO_POR_ID[s.id]).length;
   const waHref = whatsappHref(lead.whatsapp);
   const telHref = lead.whatsapp ? `tel:+${lead.whatsapp.replace(/\D/g, "")}` : null;
 
@@ -141,6 +146,34 @@ export default async function LeadPage({
                 <dd>{lead.arquivo || "Nenhum arquivo anexado"}</dd>
               </div>
             </dl>
+          </section>
+
+          <section className="crm-panel" aria-labelledby="materiais-title">
+            <h2 id="materiais-title">Materiais do lead</h2>
+            <p className="crm-muted">
+              {lead.areaM2 ? lead.areaM2 + " m² informados no site" : "Sem metragem no formulário"} ·{" "}
+              {servicosComMotor} de {lead.servicos.length} serviço(s) com lista automática
+            </p>
+            {servicosComMotor > 0 && lead.areaM2 ? (
+              <form action={gerarMateriaisDoLead} className="crm-form-actions">
+                <input type="hidden" name="id" value={lead.id} />
+                <button className="btn btn-dark btn-sm" type="submit">
+                  Gerar lista de material
+                </button>
+              </form>
+            ) : null}
+            {materiais.length > 0 ? (
+              <ul className="crm-materials">
+                {materiais.map((m) => (
+                  <li key={m.id}>
+                    <Link href={"/crm/calculadora/" + m.id}>{m.titulo}</Link>
+                    <span className="crm-muted">{formatBRL(m.totalCents)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="crm-muted">Nenhuma lista gerada ainda.</p>
+            )}
           </section>
 
           <aside className="crm-panel" aria-labelledby="atendimento-title">

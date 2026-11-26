@@ -34,3 +34,6 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# banco de teste local
+.dev/
