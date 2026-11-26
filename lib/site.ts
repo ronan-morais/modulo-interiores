@@ -168,11 +168,30 @@ export const maintenanceWhatsappHref = `${site.whatsapp.href}?text=${encodeURICo
   "Olá! Preciso de manutenção em parede, forro ou piso.",
 )}`;
 
-export const quoteOptions = [
-  ...services.map(({ id, index, title }) => ({ id, index, title })),
-  { id: maintenance.id, index: maintenance.index, title: maintenance.title },
-  // Serviço executado junto do drywall, oferecido no formulário de cotação.
-  { id: "moveis-drywall", index: "08", title: "Móveis de drywall (nicho, closet, bancada)" },
+export type QuoteOption = {
+  id: string;
+  index: string;
+  title: string;
+  description: string;
+};
+
+export const quoteOptions: QuoteOption[] = [
+  { id: "paredes-drywall", index: "01", title: "Paredes de drywall",
+    description: "Divisórias, paredes e fechamentos" },
+  { id: "moveis-drywall", index: "02", title: "Móveis de drywall",
+    description: "Guarda-roupas, closets, nichos de TV, bancadas" },
+  { id: "forro-placa-gesso", index: "03", title: "Forro de drywall",
+    description: "Sancas, rebaixamento e iluminação embutida" },
+  { id: "forro-pvc", index: "04", title: "Forro de PVC",
+    description: "Branco, amadeirado e áreas molhadas" },
+  { id: "forro-modular", index: "05", title: "Forro modular",
+    description: "Placas removíveis com acesso à infraestrutura" },
+  { id: "piso-modular", index: "06", title: "Piso modular",
+    description: "Placas modulares sobre estrutura elevada" },
+  { id: "piso-vinilico", index: "07", title: "Piso vinílico",
+    description: "Régua ou manta, colado sobre o piso atual" },
+  { id: "manutencao", index: "08", title: "Manutenção ou reparo",
+    description: "Pequenos reparos, troca de placas, reforço" },
 ];
 
 export type Advantage = {

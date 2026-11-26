@@ -32,7 +32,7 @@ type FormState = {
 };
 
 const initialState: FormState = {
-  selected: ["divisorias-drywall", "forro-modular"],
+  selected: ["paredes-drywall", "forro-modular"],
   property: "Residencial",
   area: "",
   rooms: "",
@@ -331,6 +331,7 @@ export function QuoteForm() {
                           </span>
                         ) : null}
                         <span className="tile-label">{service.title}</span>
+                        <span className="tile-desc">{service.description}</span>
                       </button>
                     );
                   })}

@@ -5190,3 +5190,22 @@ article[id] {
   border: 1px solid var(--line);
   background: #fff;
 }
+
+
+/* Tiles do formulário: título curto + descrição */
+.tile {
+  gap: 4px;
+  justify-content: flex-end;
+  min-height: 122px;
+}
+
+.tile-label {
+  margin-top: auto;
+}
+
+.tile-desc {
+  font-size: 11.5px;
+  line-height: 1.35;
+  font-weight: 400;
+  color: var(--muted);
+}

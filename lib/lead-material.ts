@@ -9,6 +9,7 @@ export const SERVICO_POR_ID: Record<string, Servico> = {
   "forro-placa-gesso": "forro_drywall",
   "forro-pvc": "forro_pvc",
   "forro-modular": "forro_modular",
+  "paredes-drywall": "parede_drywall",
   "divisorias-drywall": "parede_drywall",
   "piso-vinilico": "piso_vinilico",
   "piso-modular": "piso_modular",
