@@ -60,6 +60,20 @@ Se a gravação falhar, o formulário permanece na tela com a mensagem de erro e
 - Páginas com `noindex` e `/crm` bloqueado no `robots.txt`.
 - As colunas `status`, `notas` e `atualizado_em` são adicionadas à tabela `orcamentos` na primeira leitura (`lib/crm.ts`), sem migração manual.
 
+## Integração de leads (automação)
+
+`GET /api/leads` devolve os pedidos recebidos em ordem crescente de `id`, para a automação que monta a lista de material e envia por e-mail.
+
+- Header `Authorization: Bearer $LEADS_API_TOKEN`.
+- Query `desde` (último id já processado, padrão 0) e `limite` (1-50, padrão 20).
+- Resposta: `{ leads: [...], ultimo_id, tem_mais }`; cada lead já vem com `servicos` como objeto.
+- Sem `LEADS_API_TOKEN` no ambiente, a rota responde 503 e fica desligada.
+
+```bash
+curl -s -H "Authorization: Bearer $LEADS_API_TOKEN" \
+  "https://modulointeriores.com.br/api/leads?desde=0&limite=20"
+```
+
 ## Rodar localmente
 
 ```bash
