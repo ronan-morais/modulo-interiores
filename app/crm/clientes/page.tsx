@@ -4,7 +4,7 @@ import { CrmShell } from "@/components/CrmShell";
 import { Icon } from "@/components/Icon";
 import { isAuthenticated, whatsappHref } from "@/lib/crm";
 import { listClientes, type Cliente } from "@/lib/clientes";
-import { deleteCliente, saveCliente } from "../actions";
+import { deleteCliente, saveCliente, sincronizarContatos } from "../actions";
 
 export const metadata: Metadata = {
   title: "Clientes",
@@ -25,6 +25,13 @@ export default async function ClientesPage({
     <CrmShell
       title="Clientes"
       subtitle="Quem já pediu ou fechou serviço, com contato à mão."
+      actions={
+        <form action={sincronizarContatos}>
+          <button className="btn btn-outline btn-sm" type="submit">
+            Sincronizar contatos
+          </button>
+        </form>
+      }
     >
       <div className="crm-detail-grid">
         <section aria-labelledby="clientes-title">

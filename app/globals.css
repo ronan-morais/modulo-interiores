@@ -5209,3 +5209,46 @@ article[id] {
   font-weight: 400;
   color: var(--muted);
 }
+
+
+/* Formulário de edição do pedido no CRM */
+.crm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px 16px;
+}
+
+.crm-field-wide {
+  grid-column: 1 / -1;
+}
+
+.crm-anexos-block {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.crm-anexo-body {
+  margin-top: 8px;
+}
+
+
+.crm-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.crm-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.crm-servicos-edit {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}

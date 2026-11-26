@@ -11,13 +11,14 @@ import {
   statusLabel,
   whatsappHref,
 } from "@/lib/crm";
-import { deleteLead, gerarMateriaisDoLead, saveLead } from "../actions";
+import { deleteLead, gerarMateriaisDoLead, saveLead, savePedido } from "../actions";
 import {
   listarMateriaisDoLead,
   type MaterialDoLead,
 } from "@/lib/lead-material-db";
 import { anexosDoLead } from "@/lib/anexos";
 import { SERVICO_POR_ID } from "@/lib/lead-material";
+import { quoteOptions } from "@/lib/site";
 import { formatBRL } from "@/lib/money";
 
 export const metadata: Metadata = {
@@ -109,42 +110,70 @@ export default async function LeadPage({
               <span className="crm-block-note">{`Atualizado em ${formatTimestamp(lead.atualizadoEm)}`}</span>
             ) : null}
           </div>
-          <dl className="crm-data crm-data-grid">
-            <div>
-              <dt>Serviços</dt>
-              <dd>
-                {lead.servicos.length
-                  ? lead.servicos.map((service) => service.titulo).join(", ")
-                  : "A definir"}
-              </dd>
+                    <form action={savePedido} className="crm-form">
+            <input type="hidden" name="id" value={lead.id} />
+            <div className="crm-form-grid">
+              <label className="field-group">
+                <span className="field-label">Nome</span>
+                <input className="input" name="nome" defaultValue={lead.nome} maxLength={120} />
+              </label>
+              <label className="field-group">
+                <span className="field-label">WhatsApp</span>
+                <input className="input" name="whatsapp" defaultValue={lead.whatsapp ?? ""} maxLength={30} />
+              </label>
+              <label className="field-group">
+                <span className="field-label">E-mail</span>
+                <input className="input" name="email" type="email" defaultValue={lead.email ?? ""} maxLength={160} />
+              </label>
+              <label className="field-group">
+                <span className="field-label">Área total (m²)</span>
+                <input className="input" name="area" type="number" min={1} defaultValue={lead.areaM2 ?? ""} />
+              </label>
+              <label className="field-group">
+                <span className="field-label">Ambientes</span>
+                <input className="input" name="ambientes" type="number" min={1} defaultValue={lead.ambientes ?? ""} />
+              </label>
+              <label className="field-group">
+                <span className="field-label">Cidade</span>
+                <input className="input" name="cidade" defaultValue={lead.cidade} maxLength={80} />
+              </label>
+              <label className="field-group">
+                <span className="field-label">Bairro</span>
+                <input className="input" name="bairro" defaultValue={lead.bairro ?? ""} maxLength={80} />
+              </label>
+              <label className="field-group">
+                <span className="field-label">Prazo</span>
+                <input className="input" name="prazo" defaultValue={lead.prazo} maxLength={60} />
+              </label>
+              <label className="field-group crm-field-wide">
+                <span className="field-label">Detalhes</span>
+                <textarea className="textarea" name="detalhes" rows={3} defaultValue={lead.detalhes ?? ""} />
+              </label>
             </div>
-            <div>
-              <dt>Imóvel</dt>
-              <dd>
-                {lead.tipoImovel}
-                {lead.areaM2 ? ` · ${lead.areaM2} m² no total` : ""}
-                {lead.ambientes ? ` · ${lead.ambientes} ambientes` : ""}
-              </dd>
+            <fieldset className="field-group crm-field-wide crm-servicos-edit">
+              <legend className="field-label">Serviços</legend>
+              <div className="crm-checks">
+                {quoteOptions.map((opcao) => (
+                  <label key={opcao.id} className="crm-check">
+                    <input
+                      type="checkbox"
+                      name="servicos"
+                      value={opcao.id}
+                      defaultChecked={lead.servicos.some((s) => s.id === opcao.id || s.titulo === opcao.title)}
+                    />
+                    <span>{opcao.title}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <div className="crm-form-actions">
+              <button className="btn btn-dark btn-sm" type="submit">Salvar pedido</button>
             </div>
-            <div>
-              <dt>Local</dt>
-              <dd>
-                {lead.cidade}
-                {lead.bairro ? ` · ${lead.bairro}` : ""}
-              </dd>
-            </div>
-            <div>
-              <dt>Prazo</dt>
-              <dd>{lead.prazo}</dd>
-            </div>
-            <div>
-              <dt>Detalhes</dt>
-              <dd>{lead.detalhes || "Não informado"}</dd>
-            </div>
-            <div>
-              <dt>Fotos ou planta</dt>
-              <dd>
-                {anexos.length === 0 ? (
+          </form>
+          <div className="crm-anexos-block">
+            <span className="field-label">Fotos ou planta</span>
+            <div className="crm-anexo-body">
+{anexos.length === 0 ? (
                   lead.arquivo || "Nenhum arquivo anexado"
                 ) : (
                   <span className="crm-anexos">
@@ -160,9 +189,9 @@ export default async function LeadPage({
                     ))}
                   </span>
                 )}
-              </dd>
             </div>
-          </dl>
+          </div>
+
         </section>
 
         <section className="crm-panel" aria-labelledby="materiais-title">

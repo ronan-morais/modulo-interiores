@@ -45,6 +45,9 @@ import {
   resetMaterialTemplate,
 } from "@/lib/material-templates-db";
 import { SERVICO_POR_ID, itensDoServico, areaPorServico } from "@/lib/lead-material";
+import { atualizarPedido, garantirClienteDoLead } from "@/lib/crm";
+import { getDb } from "@/lib/db";
+import { quoteOptions } from "@/lib/site";
 import { salvarMaterialDoLead } from "@/lib/lead-material-db";
 
 const attempts = new Map<string, { count: number; blockedUntil: number }>();
@@ -376,4 +379,57 @@ export async function gerarMateriaisDoLead(formData: FormData) {
   revalidatePath("/crm");
   revalidatePath("/crm/" + id);
   redirect("/crm/" + id + "?materiais=1");
+}
+
+export async function savePedido(formData: FormData) {
+  await requireSession();
+
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id <= 0) redirect("/crm");
+
+  const texto = (campo: string, limite = 300) =>
+    String(formData.get(campo) ?? "").trim().slice(0, limite);
+  const numero = (campo: string) => {
+    const valor = Number(formData.get(campo));
+    return Number.isFinite(valor) && valor > 0 ? Math.round(valor) : null;
+  };
+
+  const escolhidos = formData.getAll("servicos").map((valor) => String(valor));
+  const servicos = escolhidos
+    .map((sid) => quoteOptions.find((opcao) => opcao.id === sid))
+    .filter((opcao): opcao is NonNullable<typeof opcao> => Boolean(opcao))
+    .map((opcao) => ({ id: opcao.id, titulo: opcao.title }));
+
+  await atualizarPedido(id, {
+    nome: texto("nome", 120) || "Sem nome",
+    whatsapp: texto("whatsapp", 30),
+    email: texto("email", 160),
+    areaM2: numero("area"),
+    ambientes: numero("ambientes"),
+    cidade: texto("cidade", 80) || "Belo Horizonte",
+    bairro: texto("bairro", 80),
+    prazo: texto("prazo", 60) || "A definir",
+    detalhes: texto("detalhes", 2000),
+    servicos,
+  });
+  await garantirClienteDoLead(id);
+
+  revalidatePath("/crm");
+  revalidatePath("/crm/clientes");
+  revalidatePath(`/crm/${id}`);
+  redirect(`/crm/${id}?editado=1`);
+}
+
+export async function sincronizarContatos() {
+  await requireSession();
+
+  const rs = await getDb().execute("SELECT id FROM orcamentos ORDER BY id DESC");
+  let criados = 0;
+  for (const row of rs.rows) {
+    const antes = await garantirClienteDoLead(Number(row.id));
+    if (antes) criados += 1;
+  }
+
+  revalidatePath("/crm/clientes");
+  redirect(`/crm/clientes?sincronizados=${criados}`);
 }

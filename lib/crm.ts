@@ -333,3 +333,58 @@ export function whatsappHref(phone: string): string | null {
   if (digits.length < 10) return null;
   return `https://wa.me/${digits.startsWith("55") ? digits : `55${digits}`}`;
 }
+
+export type PedidoEditavel = {
+  nome: string;
+  whatsapp: string;
+  email: string;
+  areaM2: number | null;
+  ambientes: number | null;
+  cidade: string;
+  bairro: string;
+  prazo: string;
+  detalhes: string;
+  servicos: { id: string; titulo: string }[];
+};
+
+export async function atualizarPedido(id: number, d: PedidoEditavel): Promise<void> {
+  await ensureCrmSchema();
+  await getDb().execute({
+    sql: `UPDATE orcamentos
+             SET nome = ?, whatsapp = ?, email = ?, area_m2 = ?, ambientes = ?,
+                 cidade = ?, bairro = ?, prazo = ?, detalhes = ?, servicos = ?,
+                 atualizado_em = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+           WHERE id = ?`,
+    args: [d.nome, d.whatsapp || null, d.email || null, d.areaM2, d.ambientes,
+           d.cidade, d.bairro || null, d.prazo, d.detalhes || null,
+           JSON.stringify(d.servicos), id],
+  });
+}
+
+export async function garantirClienteDoLead(id: number): Promise<number | null> {
+  await ensureCrmSchema();
+  const rs = await getDb().execute({
+    sql: "SELECT nome, whatsapp, email, cidade, bairro FROM orcamentos WHERE id = ?",
+    args: [id],
+  });
+  if (rs.rows.length === 0) return null;
+  const r = rs.rows[0];
+  const nome = String(r.nome ?? "").trim();
+  if (!nome) return null;
+  const whatsapp = r.whatsapp ? String(r.whatsapp) : null;
+  const email = r.email ? String(r.email) : null;
+  const ex = await getDb().execute({
+    sql: `SELECT id FROM clientes
+           WHERE (whatsapp IS NOT NULL AND whatsapp = ?) OR (email IS NOT NULL AND email = ?)
+           LIMIT 1`,
+    args: [whatsapp, email],
+  });
+  if (ex.rows.length > 0) return Number(ex.rows[0].id);
+  const ins = await getDb().execute({
+    sql: `INSERT INTO clientes (nome, whatsapp, email, cidade, bairro, observacoes)
+          VALUES (?, ?, ?, ?, ?, ?)`,
+    args: [nome, whatsapp, email, String(r.cidade ?? ""), r.bairro ? String(r.bairro) : null,
+           `Contato inicial · lead #${id} (formulário do site)`],
+  });
+  return Number(ins.lastInsertRowid);
+}
