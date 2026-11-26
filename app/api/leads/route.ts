@@ -42,9 +42,18 @@ function parseServices(raw: unknown): { id: string; titulo: string }[] {
 }
 
 export async function GET(request: Request) {
+  const url = new URL(request.url);
+
+  // Diagnóstico público: só revela se as variáveis existem, nunca o valor.
+  if (url.searchParams.get("diag") === "1") {
+    return NextResponse.json({
+      token: Boolean(process.env.LEADS_API_TOKEN),
+      key: Boolean(process.env.LEADS_API_KEY),
+    });
+  }
+
   if (!authorized(request)) return unauthorized();
 
-  const url = new URL(request.url);
   const desdeParam = Number(url.searchParams.get("desde") ?? "0");
   const limiteParam = Number(url.searchParams.get("limite") ?? "20");
   const desde = Number.isFinite(desdeParam) && desdeParam > 0 ? Math.floor(desdeParam) : 0;
