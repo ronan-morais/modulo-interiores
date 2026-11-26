@@ -1,3 +1,4 @@
+import base from "@/lib/coeficientes.json";
 import type { OrcamentoItem } from "@/lib/orcamento-material";
 
 /** Lista de material por serviço do site, estimada pela área do lead. */
@@ -14,12 +15,18 @@ export const SERVICO_POR_ID: Record<string, Servico> = {
   "moveis-drywall": "movel_drywall",
 };
 
+/** Preços vêm do mesmo arquivo que o motor Python usa (fonte única). */
+const P = base.precos as unknown as Record<string, { preco: number }>;
+const cents = (...codigos: string[]) => Math.round((P[codigos.find((c) => P[c]) ?? codigos[0]]?.preco ?? 0) * 100);
 const REF: Record<string, number> = {
-  placa: 6200, perfil_f530: 2350, canaleta: 1690, montante: 2150, guia: 1780, tabica: 2600,
-  pendural: 520, gn25_cx: 9200, massa_20: 7900, fita_150: 4600, regua_pvc: 4600,
-  trilho_pvc: 2200, arame_kg: 1800, vinilico_m2: 8900, cola_kg: 2800, rodape: 3400,
-  placa_modular: 4600, pedestal: 950, borda: 1200,
-  placa_mineral: 3200, perfil_t: 3600, tirante: 850,
+  placa: cents("placa_std_125"), perfil_f530: cents("perfil_f530"), canaleta: cents("canaleta_f47"),
+  montante: cents("montante_48"), guia: cents("guia_48"), tabica: cents("tabica"),
+  pendural: cents("pendural_reg"), gn25_cx: cents("parafuso_gn25"), massa_20: cents("massa_20kg"),
+  fita_150: cents("fita_150m"), regua_pvc: cents("regua_pvc"), trilho_pvc: cents("trilho_pvc"),
+  arame_kg: cents("arame_18"), vinilico_m2: cents("piso_vinilico_m2"), cola_kg: cents("cola_piso"),
+  rodape: cents("rodape"), placa_modular: cents("placa_modular"), pedestal: cents("pedestal"),
+  borda: cents("borda_modular"), placa_mineral: cents("placa_mineral"),
+  perfil_t: cents("perfil_t_principal"), tirante: cents("tirante"),
 };
 
 const ceil = (n: number) => Math.max(0, Math.ceil(n - 1e-9));

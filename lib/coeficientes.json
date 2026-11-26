@@ -1,0 +1,175 @@
+{
+  "meta": {
+    "versao": "1.0",
+    "revisao": "2026-11-26",
+    "fontes": [
+      "ABNT NBR 15758-1 — Sistemas construtivos em chapas de gesso para drywall: paredes (projeto e montagem)",
+      "ABNT NBR 15758-2 — Sistemas construtivos em chapas de gesso para drywall: forros",
+      "ABNT NBR 15283 — Chapas de gesso acartonado: requisitos",
+      "Tabelas de consumo de fabricantes (Knauf, Placo/Saint-Gobain, Gypsum) e coeficientes SINAPI",
+      "Referência cruzada: tabela pública de consumo por m² (SteelWorks Orça, 2026)"
+    ],
+    "aviso": "Coeficientes de referência técnica. Preços e mão de obra são tabela do Ronan — revisar antes de enviar ao cliente."
+  },
+
+  "perdas_padrao": {
+    "forro_drywall": 0.10,
+    "parede_drywall": 0.08
+  },
+
+  "sistemas": {
+    "forro_drywall": {
+      "nome": "Forro de drywall rebaixado",
+      "unidade": "m²",
+      "parametros_obrigatorios": ["comprimento", "largura"],
+      "parametros_opcionais": ["altura_rebaixamento", "placa", "espacamento", "tabica", "pendural", "la", "sanca_m"],
+      "coeficientes": {
+        "area_placa_m2": 2.16,
+        "perda": 0.10,
+        "perfil_f530_espacamento_padrao": 0.60,
+        "perfil_f530_por_m2": 1.80,
+        "pendural_por_m2": 0.90,
+        "parafuso_gn25_por_m2": 18,
+        "massa_kg_por_m2": 0.50,
+        "fita_m_por_m2": 1.60,
+        "la_m2_por_m2": 1.05,
+        "barra_perfil_m": 3.0
+      }
+    },
+    "forro_pvc": {
+      "nome": "Forro de PVC",
+      "unidade": "m²",
+      "parametros_obrigatorios": ["comprimento", "largura"],
+      "parametros_opcionais": ["perda", "la", "estrutura"],
+      "coeficientes": {
+        "regua_largura_m": 0.20,
+        "regua_comprimento_m": 5.95,
+        "perda": 0.10,
+        "trilho_barra_m": 3.0,
+        "estrutura_padrao": "metalica",
+        "linhas_estrutura_espacamento_m": 1.00,
+        "arame_kg_por_m2": 0.10,
+        "parafuso_por_m2": 6,
+        "la_m2_por_m2": 1.05
+      }
+    },
+    "forro_modular": {
+      "nome": "Forro modular (placa mineral)",
+      "unidade": "m²",
+      "parametros_obrigatorios": ["comprimento", "largura"],
+      "parametros_opcionais": ["perda"],
+      "coeficientes": {"perda": 0.05, "placa_m2": 0.3906, "perfil_t_principal_m2": 0.80, "perfil_t_secundario_m2": 1.60, "tirante_por_m2": 0.70}
+    },
+    "piso_vinilico": {
+      "nome": "Piso vinílico",
+      "unidade": "m²",
+      "parametros_obrigatorios": ["comprimento", "largura"],
+      "parametros_opcionais": ["perda", "rodape", "manta"],
+      "coeficientes": {"perda": 0.07, "cola_kg_por_m2": 0.30, "rodape_barra_m": 2.40, "manta_m2_por_m2": 1.00}
+    },
+    "piso_modular": {
+      "nome": "Piso modular elevado",
+      "unidade": "m²",
+      "parametros_obrigatorios": ["comprimento", "largura"],
+      "parametros_opcionais": ["perda", "placa_m2"],
+      "coeficientes": {"perda": 0.05, "placa_m2": 0.36, "pedestal_por_m2": 3.20, "borda_barra_m": 0.60}
+    },
+    "movel_drywall": {
+      "nome": "Móvel em drywall (nicho, closet, bancada)",
+      "unidade": "m² de painel",
+      "parametros_obrigatorios": ["comprimento", "altura"],
+      "parametros_opcionais": ["perda", "fator_painel", "placa"],
+      "coeficientes": {"perda": 0.12, "fator_painel": 2.20, "montante_espacamento_m": 0.50,
+                       "parafuso_gn25_por_m2": 28, "massa_kg_por_m2": 0.60, "fita_m_por_m2": 2.20}
+    },
+    "parede_drywall": {
+      "nome": "Parede de drywall",
+      "unidade": "m²",
+      "parametros_obrigatorios": ["comprimento", "altura"],
+      "parametros_opcionais": ["faces", "portas", "janelas", "placa", "espacamento", "la"],
+      "coeficientes": {
+        "area_placa_m2": 2.16,
+        "perda": 0.08,
+        "montante_espacamento_padrao": 0.60,
+        "guia_barra_m": 3.0,
+        "montante_barra_m": 3.0,
+        "parafuso_gn25_por_m2": 30,
+        "parafuso_metal_metal_por_m2": 8,
+        "massa_kg_por_m2": 0.60,
+        "fita_m_por_m2": 2.20,
+        "la_m2_por_m2": 1.00,
+        "reforco_montante_por_vao": 2
+      }
+    }
+  },
+
+  "precos": {
+    "_obs": "PREÇOS DE REFERÊNCIA (BH/região, nov/2026). Substituir pela tabela do fornecedor do Ronan.",
+    "placa_std_125": {"desc": "Chapa drywall STD 1,80 × 1,20 × 12,5 mm", "un": "un", "preco": 62.00, "rend_m2": 2.16},
+    "placa_ru_125": {"desc": "Chapa drywall RU (verde) 1,80 × 1,20 × 12,5 mm", "un": "un", "preco": 84.00, "rend_m2": 2.16},
+    "placa_rf_125": {"desc": "Chapa drywall RF (rosa) 1,80 × 1,20 × 12,5 mm", "un": "un", "preco": 96.00, "rend_m2": 2.16},
+    "regua_pvc": {"desc": "Régua de PVC 20 cm × 5,95 m (branca ou madeirada)", "un": "un", "preco": 46.00},
+    "trilho_pvc": {"desc": "Trilho / cantoneira de PVC — barra 3 m", "un": "br", "preco": 22.00},
+    "arame_18": {"desc": "Arame galvanizado nº 18", "un": "kg", "preco": 18.00},
+    "placa_mineral": {"desc": "Placa mineral 625 × 625 mm", "un": "un", "preco": 32.00},
+    "perfil_t_principal": {"desc": "Perfil T principal — barra 3,60 m", "un": "br", "preco": 36.00},
+    "perfil_t_secundario": {"desc": "Perfil T secundário — barra 1,20 m", "un": "br", "preco": 11.00},
+    "tirante": {"desc": "Tirante / arame de sustentação", "un": "un", "preco": 8.50},
+    "piso_vinilico_m2": {"desc": "Piso vinílico em régua — por m²", "un": "m²", "preco": 89.00},
+    "cola_piso": {"desc": "Cola para piso vinílico", "un": "kg", "preco": 28.00},
+    "rodape": {"desc": "Rodapé PVC — barra 2,40 m", "un": "br", "preco": 34.00},
+    "manta_nivel": {"desc": "Manta de nivelamento — por m²", "un": "m²", "preco": 14.00},
+    "placa_modular": {"desc": "Placa modular 60 × 60 cm", "un": "un", "preco": 46.00},
+    "pedestal": {"desc": "Pedestal regulável para piso elevado", "un": "un", "preco": 9.50},
+    "borda_modular": {"desc": "Perfil de borda / travessa — barra 60 cm", "un": "un", "preco": 12.00},
+    "perfil_f530": {"desc": "Perfil F530 (forro) — barra 3 m", "un": "br", "preco": 23.50},
+    "canaleta_f47": {"desc": "Canaleta perimetral F47 — barra 3 m", "un": "br", "preco": 16.90},
+    "tabica": {"desc": "Tabica de acabamento — barra 3 m", "un": "br", "preco": 26.00},
+    "sanca_perfil": {"desc": "Perfil para sanca iluminada — barra 3 m", "un": "br", "preco": 31.00},
+    "pendural_reg": {"desc": "Pendural regulável com tirante", "un": "un", "preco": 5.20},
+    "arame_18": {"desc": "Arame galvanizado nº 18", "un": "kg", "preco": 14.00},
+    "guia_48": {"desc": "Guia 48 mm — barra 3 m", "un": "br", "preco": 17.80},
+    "montante_48": {"desc": "Montante 48 mm — barra 3 m", "un": "br", "preco": 21.50},
+    "parafuso_gn25": {"desc": "Parafuso GN25 (caixa 1.000 un)", "un": "cx", "preco": 92.00},
+    "parafuso_mm": {"desc": "Parafuso metal-metal 13 mm (caixa 1.000 un)", "un": "cx", "preco": 78.00},
+    "massa_20kg": {"desc": "Massa para juntas — saco 20 kg", "un": "sc", "preco": 79.00},
+    "fita_150m": {"desc": "Fita de papel microperfurada — rolo 150 m", "un": "rl", "preco": 46.00},
+    "la_50": {"desc": "Lã de vidro 50 mm (m²)", "un": "m²", "preco": 13.50}
+  },
+
+  "mao_de_obra": {
+    "_obs": "Valores por m² de serviço executado, com estrutura, placas, emassamento e acabamento. Ajustar conforme equipe.",
+    "forro_drywall": {"desc": "Execução de forro de drywall (estrutura, placa, tabica, emassamento e lixa)", "preco_m2": 68.00},
+    "forro_modular": {"desc": "Forro modular mineral (perfis T, placas e nivelamento)", "preco_m2": 62.00},
+    "piso_vinilico": {"desc": "Assentamento de piso vinílico (regularização fina, cola, recortes)", "preco_m2": 42.00},
+    "piso_modular": {"desc": "Instalação de piso modular elevado (placas, pedestais, nivelamento)", "preco_m2": 48.00},
+    "movel_drywall": {"desc": "Execução de móvel em drywall (estrutura, placas, emassamento e lixa)", "preco_m2": 95.00},
+    "forro_pvc": {"desc": "Execução de forro de PVC (estrutura, réguas, arremates e limpeza)", "preco_m2": 58.00},
+    "parede_drywall": {"desc": "Execução de parede de drywall (estrutura, placas, emassamento e lixa)", "preco_m2": 72.00},
+    "sanca_m": {"desc": "Sanca / detalhe iluminado (por metro linear)", "preco_m": 85.00},
+    "vao": {"desc": "Reforço e acabamento de vão (porta/janela)", "preco_un": 120.00}
+  },
+
+  "condicoes": {
+    "validade_dias": 15,
+    "prazo_dias_padrao": 5,
+    "pagamento": "50% na aprovação e 50% na entrega",
+    "frete_padrao": 150.00,
+    "margem_pct_padrao": 15,
+    "garantia_meses": 12,
+    "aprovacao": "Assine e devolva esta proposta por WhatsApp. A data é reservada após a confirmação do pagamento inicial.",
+    "exclusoes": [
+      "Alvenaria, elétrica, hidráulica e pintura final",
+      "Retirada de entulho e andaimes, salvo descrito no escopo",
+      "Iluminação e luminárias"
+    ]
+  },
+  "empresa": {
+    "nome": "Módulo Interiores",
+    "tagline": "drywall · forros · pisos",
+    "telefone": "(31) 99740-8629",
+    "site": "modulointeriores.com.br",
+    "instagram": "@modulointeriores",
+    "cidade": "Belo Horizonte — MG"
+  }
+}
