@@ -5252,3 +5252,39 @@ article[id] {
   padding: 0;
   margin: 0;
 }
+
+
+/* Área por serviço no formulário de cotação */
+.service-areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.service-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 14px;
+}
+
+.service-area .input {
+  width: 84px;
+  text-align: right;
+}
+
+
+.crm-check-area {
+  width: 72px;
+  margin-left: 4px;
+  text-align: right;
+}
+
+.crm-check {
+  flex-wrap: wrap;
+}

@@ -16,6 +16,7 @@ const timelines = [
 
 type FormState = {
   selected: string[];
+  areas: Record<string, string>;
   property: "Residencial" | "Comercial";
   area: string;
   rooms: string;
@@ -33,6 +34,7 @@ type FormState = {
 
 const initialState: FormState = {
   selected: ["paredes-drywall", "forro-modular"],
+  areas: {},
   property: "Residencial",
   area: "",
   rooms: "",
@@ -90,6 +92,10 @@ export function QuoteForm() {
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
     setError("");
+  }
+
+  function updateArea(id: string, valor: string) {
+    setForm((current) => ({ ...current, areas: { ...current.areas, [id]: valor } }));
   }
 
   function toggleService(id: string) {
@@ -151,6 +157,7 @@ export function QuoteForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           services: form.selected,
+          serviceAreas: form.areas,
           property: form.property,
           area: form.area,
           rooms: form.rooms,
@@ -337,6 +344,33 @@ export function QuoteForm() {
                   })}
                 </div>
 
+                {form.selected.length > 0 ? (
+                  <div className="field-group">
+                    <span className="field-label">Área de cada serviço (m²)</span>
+                    <div className="service-areas">
+                      {quoteOptions
+                        .filter((servico) => form.selected.includes(servico.id))
+                        .map((servico) => (
+                          <label key={servico.id} className="service-area">
+                            <span>{servico.title}</span>
+                            <input
+                              className="input"
+                              type="number"
+                              min="1"
+                              inputMode="numeric"
+                              placeholder="m²"
+                              value={form.areas[servico.id] ?? ""}
+                              onChange={(event) => updateArea(servico.id, event.target.value)}
+                            />
+                          </label>
+                        ))}
+                    </div>
+                    <span className="field-hint">
+                      Forro, parede e piso podem ter medidas diferentes. Deixe em branco o que não souber.
+                    </span>
+                  </div>
+                ) : null}
+
                 <div className="field-group">
                   <span className="field-label" id="property-label">
                     Tipo de imóvel
@@ -362,7 +396,7 @@ export function QuoteForm() {
                 <div className="field-row">
                   <div className="field-group">
                     <label className="field-label" htmlFor="area">
-                      Área total aproximada (m²)
+                      Área total aproximada (m²) — opcional
                     </label>
                     <input
                       className="input"
@@ -377,7 +411,7 @@ export function QuoteForm() {
                       onChange={(event) => update("area", event.target.value)}
                     />
                     <span className="field-hint" id="area-hint">
-                      Some todos os ambientes. Se não souber, deixe em branco.
+                      Use só se for a mesma metragem para todos os serviços.
                     </span>
                   </div>
                   <div className="field-group">

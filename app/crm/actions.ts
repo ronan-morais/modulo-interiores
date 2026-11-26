@@ -357,11 +357,13 @@ export async function gerarMateriaisDoLead(formData: FormData) {
   if (servicos.length > 0 && area > 0) {
     const fatia = areaPorServico(area, servicos.length);
     for (const servico of servicos) {
-      const itens = itensDoServico(SERVICO_POR_ID[servico.id], fatia);
+      const areaServico =
+        servico.area && servico.area > 0 ? servico.area : fatia;
+      const itens = itensDoServico(SERVICO_POR_ID[servico.id], areaServico);
       await salvarMaterialDoLead({
         leadId: id,
         servicoId: servico.id,
-        titulo: servico.titulo + " — " + fatia.toFixed(2) + " m² (lead #" + id + ")",
+        titulo: servico.titulo + " — " + areaServico.toFixed(2) + " m² (lead #" + id + ")",
         clienteNome: lead.nome,
         clienteEmail: lead.email,
         clienteWhatsapp: lead.whatsapp,
@@ -398,13 +400,18 @@ export async function savePedido(formData: FormData) {
   const servicos = escolhidos
     .map((sid) => quoteOptions.find((opcao) => opcao.id === sid))
     .filter((opcao): opcao is NonNullable<typeof opcao> => Boolean(opcao))
-    .map((opcao) => ({ id: opcao.id, titulo: opcao.title }));
+    .map((opcao) => ({
+      id: opcao.id,
+      titulo: opcao.title,
+      area: numero("area__" + opcao.id),
+    }));
+  const somaAreas = servicos.reduce((total, servico) => total + (servico.area ?? 0), 0);
 
   await atualizarPedido(id, {
     nome: texto("nome", 120) || "Sem nome",
     whatsapp: texto("whatsapp", 30),
     email: texto("email", 160),
-    areaM2: numero("area"),
+    areaM2: somaAreas > 0 ? somaAreas : numero("area"),
     ambientes: numero("ambientes"),
     cidade: texto("cidade", 80) || "Belo Horizonte",
     bairro: texto("bairro", 80),

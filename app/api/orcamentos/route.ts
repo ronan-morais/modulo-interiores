@@ -60,6 +60,15 @@ export async function POST(request: Request) {
   const area = wholeNumber(payload.area, 1, 100_000);
   const ambientes = wholeNumber(payload.rooms, 1, 200);
 
+  const areasPorServico: Record<string, number | null> = {};
+  if (payload.serviceAreas && typeof payload.serviceAreas === "object") {
+    for (const [chave, valor] of Object.entries(payload.serviceAreas as Record<string, unknown>)) {
+      areasPorServico[chave] = wholeNumber(valor, 1, 100_000);
+    }
+  }
+
+  const somaAreas = Object.values(areasPorServico).reduce<number>((total, valor) => total + (valor ?? 0), 0);
+
   const ids = Array.isArray(payload.services)
     ? payload.services.filter((id): id is string => typeof id === "string")
     : [];
@@ -90,10 +99,14 @@ export async function POST(request: Request) {
         whatsapp || null,
         email || null,
         JSON.stringify(
-          servicos.map((servico) => ({ id: servico.id, titulo: servico.title })),
+          servicos.map((servico) => ({
+            id: servico.id,
+            titulo: servico.title,
+            area: areasPorServico[servico.id] ?? null,
+          })),
         ),
         tipoImovel,
-        area,
+        area || somaAreas || null,
         ambientes,
         cidade,
         bairro || null,

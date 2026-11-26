@@ -162,6 +162,17 @@ export default async function LeadPage({
                       defaultChecked={lead.servicos.some((s) => s.id === opcao.id || s.titulo === opcao.title)}
                     />
                     <span>{opcao.title}</span>
+                    <input
+                      className="input crm-check-area"
+                      type="number"
+                      min="1"
+                      inputMode="numeric"
+                      placeholder="m²"
+                      name={"area__" + opcao.id}
+                      defaultValue={
+                        lead.servicos.find((s) => s.id === opcao.id || s.titulo === opcao.title)?.area ?? ""
+                      }
+                    />
                   </label>
                 ))}
               </div>

@@ -12,7 +12,7 @@ export const leadStatuses = [
 
 export type LeadStatus = (typeof leadStatuses)[number]["id"];
 
-export type LeadService = { id: string; titulo: string };
+export type LeadService = { id: string; titulo: string; area?: number | null };
 
 export type Lead = {
   id: number;
@@ -344,7 +344,7 @@ export type PedidoEditavel = {
   bairro: string;
   prazo: string;
   detalhes: string;
-  servicos: { id: string; titulo: string }[];
+  servicos: { id: string; titulo: string; area?: number | null }[];
 };
 
 export async function atualizarPedido(id: number, d: PedidoEditavel): Promise<void> {
