@@ -89,6 +89,14 @@ export function QuoteForm() {
     [form.selected],
   );
 
+  const areasResumo = useMemo(
+    () =>
+      quoteOptions
+        .filter((servico) => form.selected.includes(servico.id) && form.areas[servico.id])
+        .map((servico) => servico.title + " " + form.areas[servico.id] + " m²"),
+    [form.selected, form.areas],
+  );
+
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
     setError("");
@@ -393,46 +401,7 @@ export function QuoteForm() {
                   </div>
                 </div>
 
-                <div className="field-row">
-                  <div className="field-group">
-                    <label className="field-label" htmlFor="area">
-                      Área total aproximada (m²) — opcional
-                    </label>
-                    <input
-                      className="input"
-                      id="area"
-                      name="area"
-                      type="number"
-                      min="1"
-                      inputMode="numeric"
-                      placeholder="Ex.: 45"
-                      aria-describedby="area-hint"
-                      value={form.area}
-                      onChange={(event) => update("area", event.target.value)}
-                    />
-                    <span className="field-hint" id="area-hint">
-                      Use só se for a mesma metragem para todos os serviços.
-                    </span>
-                  </div>
-                  <div className="field-group">
-                    <label className="field-label" htmlFor="rooms">
-                      Nº de ambientes
-                    </label>
-                    <input
-                      className="input"
-                      id="rooms"
-                      name="rooms"
-                      type="number"
-                      min="1"
-                      inputMode="numeric"
-                      placeholder="Ex.: 3"
-                      value={form.rooms}
-                      onChange={(event) => update("rooms", event.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="field-row">
+                                <div className="field-row">
                   <div className="field-group">
                     <label className="field-label" htmlFor="city">
                       Cidade
@@ -540,8 +509,7 @@ export function QuoteForm() {
                     <dt>Imóvel</dt>
                     <dd>
                       {form.property}
-                      {form.area ? ` · ${form.area} m² no total` : ""}
-                      {form.rooms ? ` · ${form.rooms} ambientes` : ""}
+                      {areasResumo.length > 0 ? ` · ${areasResumo.join(" · ")}` : ""}
                     </dd>
                   </div>
                   <div>
