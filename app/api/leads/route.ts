@@ -19,7 +19,7 @@ function unauthorized() {
 }
 
 function authorized(request: Request): boolean {
-  const token = process.env.LEADS_API_TOKEN;
+  const token = process.env.LEADS_API_TOKEN ?? process.env.LEADS_API_KEY;
   if (!token) return false;
   const header = request.headers.get("authorization") ?? "";
   const provided = header.replace(/^Bearer\s+/i, "").trim();
