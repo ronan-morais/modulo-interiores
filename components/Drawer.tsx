@@ -49,25 +49,25 @@ export function Drawer({
       </button>
 
       {open ? (
-        <div className="crm-drawer">
+        <div className="crm-sheet">
           <div
-            className="crm-drawer-backdrop"
+            className="crm-sheet-backdrop"
             aria-hidden="true"
             onClick={() => setOpen(false)}
           />
           <div
-            className="crm-drawer-panel"
+            className="crm-sheet-panel"
             ref={panel}
             role="dialog"
             aria-modal="true"
             aria-label={title}
           >
-            <span className="crm-drawer-handle" aria-hidden="true" />
+            <span className="crm-sheet-handle" aria-hidden="true" />
 
-            <header className="crm-drawer-head">
+            <header className="crm-sheet-head">
               <h2>{title}</h2>
               <button
-                className="crm-drawer-close"
+                className="crm-sheet-close"
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Fechar"
@@ -76,17 +76,17 @@ export function Drawer({
               </button>
             </header>
 
-            <div className="crm-drawer-body">{children}</div>
+            <div className="crm-sheet-body">{children}</div>
 
-            <footer className="crm-drawer-foot">
+            <footer className="crm-sheet-foot">
               <button
-                className="btn btn-outline btn-md crm-drawer-cancel"
+                className="btn btn-outline btn-md crm-sheet-cancel"
                 type="button"
                 onClick={() => setOpen(false)}
               >
                 Cancelar
               </button>
-              <button className="btn btn-dark btn-md crm-drawer-save" type="submit" form={formId}>
+              <button className="btn btn-dark btn-md crm-sheet-save" type="submit" form={formId}>
                 {submitLabel}
               </button>
             </footer>
