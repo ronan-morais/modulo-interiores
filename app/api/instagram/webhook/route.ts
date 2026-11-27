@@ -1,7 +1,7 @@
 import { after, NextResponse } from "next/server";
 
 import { responder } from "@/lib/instagram-dm";
-import { atualizarEnvio, registrarEvento, ultimosEventos } from "@/lib/ig-log";
+import { atualizarEnvio, historicoRecente, registrarEvento, ultimosEventos } from "@/lib/ig-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,7 +69,7 @@ export async function GET(request: Request) {
   if (debug && verifyToken() && debug === verifyToken()) {
     const para = params.get("to");
     if (!para) return NextResponse.json({ error: "to obrigatorio" }, { status: 400 });
-    const texto = params.get("text") ?? responder("oi", true);
+    const texto = params.get("text") ?? responder("oi", { primeiro: true, anteriores: [] });
     const resultado = await enviar(para, texto);
     return NextResponse.json({ ...resultado, texto });
   }
@@ -117,7 +117,7 @@ export async function POST(request: Request) {
   }
 
   const proprio = igUserId();
-  const tarefas: { para: string; texto: string; chave: string; recebido: string; id: number | null }[] = [];
+  const brutos: { para: string; chave: string; recebido: string; texto: string }[] = [];
 
   for (const entry of payload.entry ?? []) {
     for (const evento of entry.messaging ?? []) {
@@ -130,12 +130,26 @@ export async function POST(request: Request) {
       if (!recebido && !temAnexo) continue; // read / reaction / delivery
 
       const chave = evento.message?.mid ?? evento.postback?.mid ?? `${de}-${evento.timestamp ?? Date.now()}`;
-      const texto = recebido
-        ? responder(recebido, false)
-        : "Recebi seu arquivo 😊 Pra eu te passar o valor certinho, me conta a metragem e o que você quer fazer. O orçamento completo sai aqui: https://modulointeriores.com.br/orcamento";
-
-      tarefas.push({ para: de, texto, chave, recebido: recebido || "[anexo]", id: null });
+      brutos.push({ para: de, chave, recebido: recebido || "[anexo]", texto: recebido });
     }
+  }
+
+  // memória curta por conversa: evita repetir a mesma resposta
+  const historicos = new Map<string, string[]>();
+  for (const bruto of brutos) {
+    if (historicos.has(bruto.para)) continue;
+    const linhas = await historicoRecente(bruto.para, 6);
+    historicos.set(bruto.para, linhas.map((l) => l.resposta));
+  }
+
+  const tarefas: { para: string; texto: string; chave: string; recebido: string; id: number | null }[] = [];
+  for (const bruto of brutos) {
+    const anteriores = historicos.get(bruto.para) ?? [];
+    const texto = bruto.texto
+      ? responder(bruto.texto, { primeiro: anteriores.length === 0, anteriores })
+      : "Recebi o arquivo 😊 Me conta o que você quer fazer com ele e a metragem, que eu já te oriento.";
+    anteriores.push(texto);
+    tarefas.push({ para: bruto.para, texto, chave: bruto.chave, recebido: bruto.recebido, id: null });
   }
 
   for (const tarefa of tarefas) {

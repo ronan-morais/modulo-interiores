@@ -1,115 +1,120 @@
 /**
- * Atendimento automático do Direct do Instagram da Módulo.
+ * Atendimento do Direct da Módulo: respostas curtas, humanas e sem repetição.
  *
- * Regras (espelham /opt/data/modulo/ig/dm_auto.py):
- * - tom de atendente humano, PT-BR, mineiro leve
- * - nunca inventa preço: explica que depende da metragem e manda pro site
- * - sempre encaminha para /servicos ou /orcamento
- * - se a pessoa pedir atendente humano, chama o Ronan no WhatsApp
+ * Regras do Ronan (27/11/2026):
+ * - nada de link do site em toda resposta (gera miniatura no chat). Só manda
+ *   link quando a pessoa pedir o site/link explicitamente.
+ * - a resposta não pode repetir a anterior da mesma conversa.
+ * - quando a pessoa pergunta valor, pede metragem e serviço antes de opinar.
  */
-export const SITE = "https://modulointeriores.com.br";
-export const WHATSAPP = "(31) 99740-8629";
-export const LINK_ORCAMENTO = `${SITE}/orcamento`;
-export const LINK_SERVICOS = `${SITE}/servicos`;
+const SITE = "modulointeriores.com.br";
+const WHATS = "(31) 99740-8629";
 
-function normalize(text: string): string {
-  return ` ${text
+export type Contexto = {
+  primeiro: boolean;
+  anteriores: string[];
+};
+
+function normal(texto: string): string {
+  return texto
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, " ")
-    .trim()} `;
+    .trim();
 }
 
-function has(text: string, ...words: string[]): boolean {
-  return words.some((word) => text.includes(normalize(word).trim()));
+function escolher(opcoes: string[], anteriores: string[], semente: string): string {
+  const livres = opcoes.filter((o) => !anteriores.includes(o));
+  const lista = livres.length > 0 ? livres : opcoes;
+  let soma = 0;
+  for (let i = 0; i < semente.length; i += 1) soma += semente.charCodeAt(i);
+  return lista[soma % lista.length];
 }
 
-export function responder(texto: string, primeiroContato: boolean): string {
-  const t = normalize(texto);
-  const saudacao = primeiroContato ? "Oi! Tudo bem? 😊" : "Tudo bem!";
+const TEM = (t: string, palavras: string[]) => palavras.some((p) => t.includes(p));
 
-  if (has(t, "parar", "atendente humano", "falar com alguem", "falar com o ronan", "humano")) {
-    return `Claro! Já chamei o Ronan da Módulo pra falar direto com você 😊 Se quiser adiantar, o WhatsApp dele é ${WHATSAPP}.`;
+export function temPedidoDeLink(t: string): boolean {
+  return TEM(t, ["link", "site", "endereco do site", "pagina", "formulario"]);
+}
+
+export function responder(texto: string, ctx: Contexto): string {
+  const t = normal(texto);
+  const antes = ctx.anteriores ?? [];
+  const escolha = (opcoes: string[]) => escolher(opcoes, antes, t);
+
+  if (TEM(t, ["parar", "nao quero", "sair"])) {
+    return "Tudo bem, sem problema. Se precisar é só chamar por aqui 😊";
   }
 
-  if (has(t, "obrigad", "valeu", "vlw", "brigad")) {
-    return `Imagina! Qualquer coisa é só chamar aqui 😊 Quando quiser, a cotação sai em 2 minutos: ${LINK_ORCAMENTO}`;
+  if (temPedidoDeLink(t)) {
+    return (
+      `O site é ${SITE} — o orçamento fica em ${SITE}/orcamento e os serviços em ${SITE}/servicos. ` +
+      `Se preferir, eu mesmo já monto o orçamento por aqui: me diz o serviço e a metragem.`
+    );
   }
 
-  if (
-    has(
-      t,
-      "preco",
-      "preço",
-      "valor",
-      "quanto custa",
-      "quanto fica",
-      "quanto sai",
-      "quanto e",
-      "orcamento",
-      "orçamento",
-      "cotacao",
-      "cotação",
-      "cotar",
-      "quanto voces cobram",
-    )
-  ) {
-    return `${saudacao} O valor depende da metragem e do que vai ser feito (parede, forro, piso, móvel). A gente calcula certinho pelo site, é rapidinho e volta com o orçamento: ${LINK_ORCAMENTO}\nSe preferir, me passa aqui a metragem e o tipo de serviço que eu te adianto.`;
+  if (TEM(t, ["quanto custa", "quanto fica", "preco", "valor", "quanto sai", "custa"])) {
+    return escolha([
+      "O valor depende da metragem e do que vai ser feito. Me diz o serviço e o tamanho aproximado do ambiente que eu já te passo uma faixa.",
+      "Pra te dar um número eu preciso de duas coisas: o serviço e a metragem. Me conta que eu já te oriento.",
+      "Muda bastante entre forro, parede e piso. Qual é o seu caso e quantos metros, mais ou menos?",
+    ]);
   }
 
-  if (has(t, "prazo", "quanto tempo", "demora", "quando pode", "agenda", "disponibilidade")) {
-    return `Os forros e paredes saem rápido: serviço pequeno costuma ficar entre 3 e 7 dias, obra maior a gente monta o cronograma junto no orçamento. Me conta o que você precisa que eu te passo o prazo: ${LINK_ORCAMENTO}`;
+  if (TEM(t, ["orcamento", "cotacao", "cotar", "simular"])) {
+    return escolha([
+      "Eu monto o orçamento por aqui mesmo: me diz o serviço, a metragem e o bairro. Se preferir, o site da Módulo tem o formulário que faz essa conta.",
+      "Consigo levantar agora: serviço, metragem e bairro. Também tem o formulário no site da Módulo, se você preferir preencher sozinho.",
+    ]);
   }
 
-  if (has(t, "onde", "atende", "atendem", "regiao", "região", "endereco", "endereço", "bh", "belo horizonte", "contagem")) {
-    return `A gente atende Belo Horizonte e Contagem 😊 O atendimento é na obra e no escritório, agendado. Dá uma olhada nos serviços e fala com a gente por aqui: ${LINK_SERVICOS}`;
+  if (TEM(t, ["telefone", "whatsapp", "zap", "contato", "email", "e-mail", "numero"])) {
+    return escolha([
+      `WhatsApp ${WHATS} — é o caminho mais rápido. O site da Módulo também tem contato e formulário, se preferir por lá.`,
+      `Pode chamar no ${WHATS}. Se quiser ver tudo antes, o site da Módulo tem os serviços e o contato completo.`,
+    ]);
   }
 
-  if (has(t, "telefone", "whatsapp", "whats", "numero", "número", "contato", "email", "e-mail")) {
-    return `Nosso WhatsApp é ${WHATSAPP} 📱 e o e-mail contato@modulointeriores.com.br. O formulário do site também cai direto pra gente: ${LINK_ORCAMENTO}`;
+  if (TEM(t, ["onde", "atende", "atendem", "regiao", "bh", "belo horizonte", "contagem", "endereco"])) {
+    return escolha([
+      "Atendemos Belo Horizonte e região metropolitana, com visita técnica sem custo. De qual bairro você fala?",
+      "Trabalhamos em BH e região (Contagem, Betim, Santa Luzia). A visita pra medir é sem custo.",
+    ]);
   }
 
-  if (
-    has(
-      t,
-      "drywall",
-      "forro",
-      "pvc",
-      "piso",
-      "vinilico",
-      "vinílico",
-      "sanca",
-      "movel",
-      "móvel",
-      "parede",
-      "divisoria",
-      "divisória",
-      "rebaixamento",
-      "manutencao",
-      "manutenção",
-      "acustico",
-      "acústico",
-      "closet",
-      "nicho",
-      "modular",
-      "la de vidro",
-      "lã de vidro",
-      "teto",
-    )
-  ) {
-    return `${saudacao} Trabalhamos com drywall, forros (inclusive PVC e modular), pisos, móveis sob medida e manutenção — obra a seco, sem quebra-quebra. Veja os detalhes: ${LINK_SERVICOS}\nPra cotar o seu caso é só preencher aqui: ${LINK_ORCAMENTO}`;
+  if (TEM(t, ["prazo", "quando fica", "demora", "tempo", "entrega"])) {
+    return escolha([
+      "O prazo depende do tamanho e da agenda da equipe. Passando o serviço e a metragem eu já te digo a previsão.",
+      "Forro e parede são rápidos; obra maior entra em agenda. Me diz o tamanho que eu te passo a previsão real.",
+    ]);
   }
 
-  if (has(t, "oi", "ola", "olá", "bom dia", "boa tarde", "boa noite", "tudo bem", "opa", "e ai", "e aí")) {
-    const opcoes = [
-      `Oi! Tudo bem? 😊 Aqui é da Módulo Interiores, de BH — drywall, forros e pisos. Como posso te ajudar? Se já quiser adiantar, os serviços estão em ${LINK_SERVICOS}`,
-      `Olá! Tudo ótimo 😊 Módulo Interiores aqui. Me conta o que você está precisando que eu já te oriento — ou dá uma olhada em ${LINK_SERVICOS}`,
-    ];
-    let soma = 0;
-    for (let i = 0; i < texto.length; i += 1) soma += texto.charCodeAt(i);
-    return opcoes[soma % opcoes.length];
+  if (TEM(t, ["drywall", "parede", "divisoria", "forro", "pvc", "gesso", "modular", "piso", "vinilico", "movei", "sanca"])) {
+    return escolha([
+      "Trabalhamos com isso: projeto, estrutura e acabamento, com equipe própria. Me conta o ambiente e a metragem que eu já te oriento e passo a faixa de valor.",
+      "É um dos nossos serviços — do projeto ao acabamento pronto pra pintar. Quantos metros, mais ou menos, e em qual ambiente?",
+    ]);
   }
 
-  return `${saudacao} Aqui é da Módulo Interiores, de BH — drywall, forros, pisos e móveis sob medida. Me conta o que você precisa (e a metragem, se souber) que eu te ajudo. Os serviços e o formulário de cotação estão no site: ${LINK_ORCAMENTO}`;
+  if (ctx.primeiro || TEM(t, ["oi", "ola", "bom dia", "boa tarde", "boa noite", "tudo bem", "opa"])) {
+    return escolha([
+      "Oi! Tudo bem? 😊 Aqui é a Módulo Interiores, de BH — drywall, forros, pisos e móveis sob medida. O que você está precisando?",
+      "Olá! Tudo certo por aqui 😊 Módulo Interiores. Me conta o que você quer fazer que eu já te oriento.",
+      "Oi! Tudo bem? Me diz o ambiente e o que você quer fazer que eu te ajudo a chegar no valor.",
+    ]);
+  }
+
+  if (TEM(t, ["obrigad", "valeu", "vlw", "agradec"])) {
+    return escolha([
+      "Eu que agradeço 😊 Qualquer coisa é só chamar por aqui.",
+      "Imagina! Tô por aqui se precisar.",
+    ]);
+  }
+
+  return escolha([
+    "Me conta um pouco mais: é forro, parede, piso ou móvel sob medida? Com isso eu já te oriento e passo a faixa de valor.",
+    "Pra eu te ajudar direito: qual serviço você precisa e qual o tamanho do ambiente?",
+    "Consigo te orientar sim. Me diz o que você quer fazer e quantos metros, mais ou menos.",
+  ]);
 }

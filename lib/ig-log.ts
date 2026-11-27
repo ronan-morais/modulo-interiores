@@ -72,3 +72,25 @@ export async function ultimosEventos(limite = 10) {
   });
   return res.rows;
 }
+
+/** Últimas trocas de uma conversa (memória curta do atendimento). */
+export async function historicoRecente(igsid: string, limite = 6) {
+  try {
+    await tabela();
+    const res = await getDb().execute({
+      sql: `SELECT recebido, resposta, criado_em
+              FROM ig_dm_eventos
+             WHERE igsid = ? AND resposta IS NOT NULL AND resposta != ''
+             ORDER BY id DESC LIMIT ?`,
+      args: [igsid, Math.min(Math.max(limite, 1), 20)],
+    });
+    return res.rows.map((r) => ({
+      recebido: String(r.recebido ?? ""),
+      resposta: String(r.resposta ?? ""),
+      quando: String(r.criado_em ?? ""),
+    }));
+  } catch (falha) {
+    console.error("[ig-dm] falha ao ler historico", falha);
+    return [];
+  }
+}
