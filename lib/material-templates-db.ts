@@ -169,6 +169,7 @@ export async function listMaterialTemplates(): Promise<TemplatesPorSistema> {
   await ensureCrmSchema();
 
   const sistemas = await listSistemasMaterial();
+  await garantirVersaoSeed();
   const result = await getDb().execute(
     "SELECT * FROM materiais_template ORDER BY sistema, ordem, id",
   );
@@ -235,4 +236,30 @@ export async function resetMaterialTemplate(
   if (!templatesPadrao[sistema]) return [];
 
   return seedTemplate(sistema);
+}
+
+/** Versão dos templates padrão: quando muda, a base é re-semeada uma vez. */
+const SEED_VERSAO = 2;
+
+async function garantirVersaoSeed(): Promise<void> {
+  await getDb().execute(
+    `CREATE TABLE IF NOT EXISTS material_seed (id INTEGER PRIMARY KEY CHECK (id = 1), versao INTEGER NOT NULL DEFAULT 0)`,
+  );
+  const atual = await getDb().execute("SELECT versao FROM material_seed WHERE id = 1");
+  const versao = Number(atual.rows[0]?.versao ?? 0);
+  if (versao >= SEED_VERSAO) return;
+
+  for (const slug of Object.keys(templatesPadrao)) {
+    await getDb().execute({
+      sql: "DELETE FROM materiais_template WHERE sistema = ?",
+      args: [slug],
+    });
+    await seedTemplate(slug);
+  }
+
+  await getDb().execute({
+    sql: `INSERT INTO material_seed (id, versao) VALUES (1, ?)
+          ON CONFLICT(id) DO UPDATE SET versao = excluded.versao`,
+    args: [SEED_VERSAO],
+  });
 }
