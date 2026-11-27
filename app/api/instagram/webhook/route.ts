@@ -107,6 +107,16 @@ async function enviar(para: string, texto: string): Promise<{ ok: boolean; statu
 }
 
 
+/** Modo teste: quando IG_DM_TESTE=1, só responde os IGSIDs listados (evita falar
+ *  com cliente real enquanto o atendimento ainda está sendo ajustado. */
+function testeRestrito(): string[] | null {
+  if ((process.env.IG_DM_TESTE ?? "") !== "1") return null;
+  return (process.env.IG_DM_TESTE_IDS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 /** POST /api/instagram/webhook — eventos de mensagem do Direct. */
 export async function POST(request: Request) {
   let payload: IgPayload;
@@ -124,6 +134,8 @@ export async function POST(request: Request) {
       const de = evento.sender?.id;
       if (!de || de === proprio) continue; // eco da própria conta
       if (evento.message?.is_echo) continue;
+      const restrito = testeRestrito();
+      if (restrito && !restrito.includes(de)) continue;
 
       const recebido = (evento.message?.text ?? evento.postback?.title ?? "").trim();
       const temAnexo = Boolean(evento.message?.attachments?.length);

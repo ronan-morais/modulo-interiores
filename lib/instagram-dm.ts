@@ -62,10 +62,13 @@ function variar(opcoes: string[], anteriores: string[]): string {
 export function responder(texto: string, ctx: Contexto): string {
   const t = texto.toLowerCase().trim();
   const antes = ctx.anteriores ?? [];
-  const pediuLink = /\blink\b|qual\s+o\s+site|manda\s+o\s+site|endere[cç]o\s+do\s+site/i.test(t);
-  const reclamou = /j[aá]\s+falei|como\s+falei|de\s+novo|repit/i.test(t);
+  const pediuLink = /\blink\b|qual\s+o\s+site|manda\s+o\s+site/i.test(t);
+  const reclamou = /j[aá]\s+falei|como\s+falei|repit|voce ja falou|você já falou/i.test(t);
   const servico = ctx.servico ?? null;
   const metragem = ctx.metragem ?? null;
+  const assunto = servico ? `${servico}${metragem ? ` em ${metragem}` : ""}` : null;
+  const jaFalouOrcamento = antes.some((r) => /formul[aá]rio|cota[cç][aã]o/i.test(r));
+  const jaPediuDados = antes.some((r) => /teu nome|seu nome|bairro/i.test(r));
 
   if (pediuLink) {
     return variar(
@@ -77,82 +80,37 @@ export function responder(texto: string, ctx: Contexto): string {
     );
   }
 
-  // serviço + metragem já conhecidos: só puxa orçamento se o assunto é esse
-  const citouAgora = Boolean(extrairServico(texto) ?? extrairMetragem(texto));
-  const querPreco = /or[cç]amento|cota[cç][aã]o|valor|pre[cç]o|quanto/i.test(t);
-  if (servico && metragem && (citouAgora || querPreco || reclamou)) {
-    const base = `${servico} em ${metragem}${reclamou ? ", anotado de novo e sem perguntar outra vez" : ", anotado"}.`;
-    return variar(
-      [
-        `${base} Pra fechar o valor a gente usa o formulário de orçamento do site: você informa o serviço e a metragem e a gente responde com a conta. Se quiser, já passo pro Ronan te chamar.`,
-        `${base} A cotação sai pelo formulário do site — só serviço e metragem — e a resposta vem com o valor. Prefere que o Ronan te chame no WhatsApp?`,
-      ],
-      antes,
-    );
-  }
-
-  if (servico && !metragem) {
-    return variar(
-      [
-        `${servico}, certo. Quantos metros quadrados, mais ou menos?`,
-        `${servico}, anotado. Me diz a metragem aproximada que eu já te oriento.`,
-      ],
-      antes,
-    );
-  }
-
-  if (metragem && !servico) {
-    return variar(
-      [
-        `${metragem}, anotado. É forro, parede ou piso?`,
-        `${metragem} de área. Qual o serviço — forro, parede ou piso?`,
-      ],
-      antes,
-    );
-  }
-
-  if (/pre[cç]o|valor|quanto\s+custa|or[cç]amento|cota[cç][aã]o|quanto\s+fica/i.test(t)) {
-    return variar(
-      [
-        "O valor depende do serviço e da metragem. Me diz o que você quer fazer e o tamanho do ambiente que eu já te passo uma faixa.",
-        "Pra te dar número eu preciso de duas coisas: serviço e metragem. Me passa esses dois que eu já respondo.",
-      ],
-      antes,
-    );
-  }
-
-  if (/whats|telefone|n[uú]mero|contato|email|e-mail/i.test(t)) {
-    return variar(
-      [
-        "WhatsApp da Módulo: (31) 99740-8629. O site também tem o contato e o formulário de orçamento.",
-        "Falo com você pelo (31) 99740-8629 no WhatsApp. E no site da Módulo tem o contato e o orçamento online.",
-      ],
-      antes,
-    );
-  }
-
-  if (/onde|atende|regi[aã]o|bh|contagem|endere[cç]o/i.test(t)) {
-    return variar(
-      [
-        "Atendemos Belo Horizonte e região metropolitana, com visita técnica sem custo.",
-        "É BH e região metropolitana (Contagem e entorno). A visita técnica pra medir não é cobrada.",
-      ],
-      antes,
-    );
-  }
-
   if (/prazo|quando|demora|tempo/i.test(t)) {
-    const assunto = servico ? `${servico}${metragem ? ` em ${metragem}` : ""}` : null;
     return variar(
       assunto
         ? [
             `Sobre ${assunto}: o prazo depende da agenda da equipe — eu confirmo a data com o Ronan e te falo.`,
-            `${assunto} entra na agenda da semana; o Ronan confirma o dia exato. Quer que eu peça?`,
+            `${assunto} entra na agenda da semana; o Ronan confirma o dia exato.`,
           ]
         : [
             "O prazo depende do tamanho e da agenda. Passando serviço e metragem eu já te digo a previsão.",
             "Varia com a metragem e o serviço — me diz os dois que eu falo o prazo.",
           ],
+      antes,
+    );
+  }
+
+  if (/whats|telefone|n[uú]mero|contato|e-?mail/i.test(t)) {
+    return variar(
+      [
+        "WhatsApp da Módulo: (31) 99740-8629. O site também tem o contato e o formulário de orçamento.",
+        "Falo contigo pelo (31) 99740-8629 no WhatsApp. E no site da Módulo tem o contato e o orçamento online.",
+      ],
+      antes,
+    );
+  }
+
+  if (/onde|atende|regi[aã]o|contagem|endere[cç]o/i.test(t)) {
+    return variar(
+      [
+        "Atendemos Belo Horizonte e região metropolitana, com visita técnica sem custo.",
+        "É BH e região metropolitana (Contagem e entorno). A visita pra medir não é cobrada.",
+      ],
       antes,
     );
   }
@@ -164,7 +122,74 @@ export function responder(texto: string, ctx: Contexto): string {
     );
   }
 
-  if (/^(oi|ola|olá|opa|bom dia|boa tarde|boa noite|tudo bem|e ai|e aí)[\s!.?]*$/i.test(t)) {
+  const querPreco = /or[cç]amento|cota[cç][aã]o|valor|pre[cç]o|quanto|custa/i.test(t);
+  const saudacao = /^(oi|ola|olá|opa|bom dia|boa tarde|boa noite|tudo bem|e ai|e aí)[\s!.?]*$/i.test(t);
+  const concordou = /^(sim|isso|claro|pode|beleza|ok|certo|uhum|perfeito|exato)[\s!.?]*$/i.test(t);
+
+  // 1) quem já disse tudo não ouve a mesma pergunta de novo
+  if (servico && metragem) {
+    if (querPreco && !jaFalouOrcamento) {
+      return variar(
+        [
+          `${assunto}. A cotação sai pelo formulário de orçamento do site — serviço e metragem — e a gente responde com o valor. Ou eu já passo pro Ronan te chamar.`,
+          `${assunto}. Pra fechar valor, o caminho é o formulário do site (serviço + metragem); se preferir, encaminho pro Ronan no WhatsApp.`,
+        ],
+        antes,
+      );
+    }
+    if (jaPediuDados) {
+      return variar(
+        [
+          `Anotado: ${assunto}. Já mandei pro Ronan, ele te chama no WhatsApp pra fechar a medida.`,
+          `Perfeito, ${assunto} anotado. O Ronan assume daqui e te chama pra fechar o orçamento.`,
+        ],
+        antes,
+      );
+    }
+    return variar(
+      [
+        `Anotado: ${assunto}. Me diz teu nome e o bairro que eu já encaminho o orçamento pro Ronan.`,
+        `${assunto}. Pra encaminhar, só me passa teu nome e o bairro.`,
+      ],
+      antes,
+    );
+  }
+
+  // 2) falta uma das duas informações — pede só o que falta
+  if (servico && !metragem) {
+    return variar(
+      [`${servico}, certo. Quantos metros quadrados, mais ou menos?`, `${servico}, anotado. E a metragem?`],
+      antes,
+    );
+  }
+  if (metragem && !servico) {
+    return variar(
+      [`${metragem}, anotado. É forro, parede ou piso?`, `${metragem} de área. Qual serviço — forro, parede ou piso?`],
+      antes,
+    );
+  }
+
+  if (reclamou) {
+    return variar(
+      [
+        "Tem razão, desculpa a repetição. Me diz em uma frase o que você precisa e a metragem — eu não pergunto de novo.",
+        "Desculpa, errei na repetição. Só preciso do serviço e dos metros, numa frase.",
+      ],
+      antes,
+    );
+  }
+
+  if (querPreco) {
+    return variar(
+      [
+        "O valor depende do serviço e da metragem. Me diz o que você quer fazer e o tamanho do ambiente que eu já te oriento.",
+        "Pra te dar número eu preciso de duas coisas: serviço e metragem. Manda os dois que eu já respondo.",
+      ],
+      antes,
+    );
+  }
+
+  if (saudacao || concordou) {
     if (ctx.primeiro) {
       return variar(
         [
@@ -175,15 +200,18 @@ export function responder(texto: string, ctx: Contexto): string {
       );
     }
     return variar(
-      ["Oi de novo! 😊 Seguimos no que você precisa?", "Oi! Continuo por aqui — o que você quer fazer?"],
+      [
+        "Oi! Aqui é a Módulo. Me diz o serviço e a metragem que eu já te passo o caminho do orçamento.",
+        "Oi de novo 😊 Só preciso do serviço e dos metros pra te orientar.",
+      ],
       antes,
     );
   }
 
   return variar(
     [
-      "Entendi. É forro, parede, piso ou móvel? Com o serviço e a metragem eu já te oriento no valor.",
-      "Me diz o serviço (forro, parede, piso, móvel) e a metragem que eu já respondo certinho.",
+      "Entendi. Me diz o serviço (forro, parede, piso, móvel) e a metragem que eu já respondo certinho.",
+      "Certo. Qual o serviço e quantos metros, mais ou menos?",
     ],
     antes,
   );
