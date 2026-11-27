@@ -146,7 +146,14 @@ export async function createLeadManual(formData: FormData) {
   const nome = readText(formData, "nome", 120);
   if (!nome) redirect("/crm?erro=lead");
 
-  const servicos = formData.getAll("servicos").filter((v): v is string => typeof v === "string");
+  const servicos = formData
+    .getAll("servicos")
+    .filter((v): v is string => typeof v === "string")
+    .map((id) => ({
+      id,
+      titulo: quoteOptions.find((opcao) => opcao.id === id)?.title ?? id,
+      area: Number(formData.get(`area_${id}`)) || null,
+    }));
 
   const id = await createLead({
     nome,

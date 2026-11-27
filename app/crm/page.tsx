@@ -197,8 +197,17 @@ export default async function CrmPage({
               <div className="crm-check-grid">
                 {quoteOptions.map((servico) => (
                   <label key={servico.id} className="crm-check">
-                    <input type="checkbox" name="servicos" value={servico.title} />
+                    <input type="checkbox" name="servicos" value={servico.id} />
                     <span>{servico.title}</span>
+                    <input
+                      className="input crm-check-area"
+                      name={`area_${servico.id}`}
+                      type="number"
+                      min={1}
+                      max={100000}
+                      placeholder="m²"
+                      aria-label={`Metragem de ${servico.title}`}
+                    />
                   </label>
                 ))}
               </div>

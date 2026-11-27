@@ -413,7 +413,7 @@ export type LeadNovo = {
   nome: string;
   whatsapp: string;
   email: string;
-  servicos: string[];
+  servicos: { id: string; titulo: string; area: number | null }[];
   tipoImovel: string;
   areaM2: number | null;
   ambientes: number | null;
@@ -426,7 +426,12 @@ export type LeadNovo = {
 
 export async function createLead(dados: LeadNovo): Promise<number> {
   await ensureCrmSchema();
-  const servicos = dados.servicos.map((titulo) => ({ id: titulo, titulo }));
+  const servicos = dados.servicos.map((item) => ({
+    id: item.id,
+    titulo: item.titulo,
+    area: item.area ?? null,
+  }));
+  const somaAreas = dados.servicos.reduce((total, item) => total + (item.area ?? 0), 0);
   const res = await getDb().execute({
     sql: `INSERT INTO orcamentos (
         nome, whatsapp, email, servicos, tipo_imovel, area_m2, ambientes,
@@ -438,7 +443,7 @@ export async function createLead(dados: LeadNovo): Promise<number> {
       dados.email || null,
       JSON.stringify(servicos),
       dados.tipoImovel || "Residencial",
-      dados.areaM2,
+      dados.areaM2 ?? (somaAreas > 0 ? somaAreas : null),
       dados.ambientes,
       dados.cidade || "Belo Horizonte",
       dados.bairro || null,
