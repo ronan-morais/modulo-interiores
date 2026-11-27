@@ -146,14 +146,17 @@ export async function createLeadManual(formData: FormData) {
   const nome = readText(formData, "nome", 120);
   if (!nome) redirect("/crm?erro=lead");
 
-  const servicos = formData
-    .getAll("servicos")
-    .filter((v): v is string => typeof v === "string")
-    .map((id) => ({
-      id,
-      titulo: quoteOptions.find((opcao) => opcao.id === id)?.title ?? id,
-      area: Number(formData.get(`area_${id}`)) || null,
-    }));
+  const marcados = new Set(
+    formData.getAll("servicos").filter((v): v is string => typeof v === "string"),
+  );
+  // metragem digitada já marca o serviço (mesmo sem clicar no check)
+  const servicos = quoteOptions
+    .map((opcao) => ({
+      id: opcao.id,
+      titulo: opcao.title,
+      area: Number(formData.get(`area_${opcao.id}`)) || null,
+    }))
+    .filter((item) => marcados.has(item.id) || item.area !== null);
 
   const id = await createLead({
     nome,
@@ -171,7 +174,8 @@ export async function createLeadManual(formData: FormData) {
   });
 
   revalidatePath("/crm");
-  redirect(`/crm/${id}`);
+  revalidatePath(`/crm/${id}`);
+  redirect(`/crm?salvo=${id}`);
 }
 
 export async function deleteLead(formData: FormData) {

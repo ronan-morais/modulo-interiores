@@ -22,6 +22,7 @@ export function Drawer({
   children,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
+  const [enviando, setEnviando] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,16 +30,39 @@ export function Drawer({
     const overflowAnterior = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const fecharComEsc = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || !panel.current) return;
+      const focaveis = panel.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focaveis.length === 0) return;
+      const primeiro = focaveis[0];
+      const ultimo = focaveis[focaveis.length - 1];
+      if (event.shiftKey && document.activeElement === primeiro) {
+        event.preventDefault();
+        ultimo.focus();
+      } else if (!event.shiftKey && document.activeElement === ultimo) {
+        event.preventDefault();
+        primeiro.focus();
+      }
     };
     document.addEventListener("keydown", fecharComEsc);
-    const primeiroCampo = panel.current?.querySelector<HTMLElement>("input, select, textarea");
-    primeiroCampo?.focus({ preventScroll: true });
+    const formulario = document.getElementById(formId);
+    const aoEnviar = () => setEnviando(true);
+    formulario?.addEventListener("submit", aoEnviar);
+    if (window.innerWidth >= 720) {
+      const primeiroCampo = panel.current?.querySelector<HTMLElement>("input, select, textarea");
+      primeiroCampo?.focus({ preventScroll: true });
+    }
     return () => {
       document.body.style.overflow = overflowAnterior;
       document.removeEventListener("keydown", fecharComEsc);
+      formulario?.removeEventListener("submit", aoEnviar);
     };
-  }, [open]);
+  }, [open, formId]);
 
   return (
     <>
@@ -64,11 +88,7 @@ export function Drawer({
 
       {open ? (
         <div className="crm-sheet">
-          <div
-            className="crm-sheet-backdrop"
-            aria-hidden="true"
-            onClick={() => setOpen(false)}
-          />
+          <div className="crm-sheet-backdrop" aria-hidden="true" />
           <div
             className="crm-sheet-panel"
             ref={panel}
@@ -100,8 +120,14 @@ export function Drawer({
               >
                 Cancelar
               </button>
-              <button className="btn btn-dark btn-md crm-sheet-save" type="submit" form={formId}>
-                {submitLabel}
+              <button
+                className="btn btn-dark btn-md crm-sheet-save"
+                type="submit"
+                form={formId}
+                disabled={enviando}
+                aria-busy={enviando}
+              >
+                {enviando ? "Salvando…" : submitLabel}
               </button>
             </footer>
           </div>

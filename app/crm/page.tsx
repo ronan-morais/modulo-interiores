@@ -26,6 +26,7 @@ export const metadata: Metadata = {
 
 type SearchParams = {
   erro?: string;
+  salvo?: string;
   status?: string;
   q?: string;
 };
@@ -55,6 +56,18 @@ export default async function CrmPage({
       title="Contatos"
       subtitle="Pedidos recebidos pelo formulário de orçamento do site."
     >
+      {params.salvo ? (
+        <p className="crm-saved" role="status">
+          Contato salvo.{" "}
+          <Link href={`/crm/${params.salvo}`}>Abrir ficha</Link>
+        </p>
+      ) : null}
+      {params.erro === "lead" ? (
+        <p className="crm-alert" role="alert">
+          Faltou o nome do contato. Preencha e salve de novo.
+        </p>
+      ) : null}
+
       <nav className="crm-filters" aria-label="Filtrar por status">
           <Link
             href={`/crm${searchSuffix}`}
@@ -140,6 +153,12 @@ export default async function CrmPage({
                       <span className="crm-muted crm-who-date">
                         {formatTimestamp(lead.criadoEm)}
                       </span>
+                      <span className="crm-who-meta">
+                        {lead.servicos.length
+                          ? lead.servicos.map((item) => item.titulo).join(" · ")
+                          : "Sem serviço definido"}
+                        {lead.areaM2 ? ` · ${lead.areaM2} m²` : ""}
+                      </span>
                       <span className="crm-badge crm-badge-origem" data-origem={lead.origem}>
                         {origemLabel(lead.origem)}
                       </span>
@@ -178,79 +197,101 @@ export default async function CrmPage({
             ? "Mostrando os 200 contatos mais recentes."
             : `${leads.length} ${leads.length === 1 ? "contato" : "contatos"} nesta visão.`}
         </p>
-        <Drawer title="Novo contato" formId="form-contato-novo" submitLabel="Salvar contato">
+        <Drawer
+          title="Novo contato"
+          formId="form-contato-novo"
+          submitLabel="Salvar contato"
+          defaultOpen={params.erro === "lead"}
+        >
           <form id="form-contato-novo" action={createLeadManual} className="crm-form">
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-nome">Nome</label>
-              <input className="input" id="nc-nome" name="nome" required maxLength={120} />
-            </div>
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-whatsapp">WhatsApp</label>
-              <input className="input" id="nc-whatsapp" name="whatsapp" maxLength={40} inputMode="tel" />
-            </div>
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-email">E-mail</label>
-              <input className="input" id="nc-email" name="email" type="email" maxLength={160} />
-            </div>
-            <fieldset className="field-group">
-              <legend className="field-label">Serviços</legend>
-              <div className="crm-check-grid">
+            {params.erro === "lead" ? (
+              <p className="crm-alert" role="alert">
+                Informe o nome do contato.
+              </p>
+            ) : null}
+            <fieldset className="crm-section">
+              <legend>Quem é</legend>
+              <div className="field-group">
+                <label className="field-label" htmlFor="nc-nome">Nome</label>
+                <input className="input" id="nc-nome" name="nome" maxLength={120} required autoComplete="name" />
+              </div>
+              <div className="crm-row-2">
+                <div className="field-group">
+                  <label className="field-label" htmlFor="nc-whatsapp">WhatsApp</label>
+                  <input className="input" id="nc-whatsapp" name="whatsapp" maxLength={40} inputMode="tel" placeholder="(31) 90000-0000" />
+                </div>
+                <div className="field-group">
+                  <label className="field-label" htmlFor="nc-email">E-mail</label>
+                  <input className="input" id="nc-email" name="email" type="email" maxLength={160} />
+                </div>
+              </div>
+            </fieldset>
+            <fieldset className="crm-section">
+              <legend>O que precisa</legend>
+              <div className="crm-servicos">
                 {quoteOptions.map((servico) => (
-                  <label key={servico.id} className="crm-check">
-                    <input type="checkbox" name="servicos" value={servico.id} />
-                    <span>{servico.title}</span>
-                    <input
-                      className="input crm-check-area"
-                      name={`area_${servico.id}`}
-                      type="number"
-                      min={1}
-                      max={100000}
-                      placeholder="m²"
-                      aria-label={`Metragem de ${servico.title}`}
-                    />
+                  <div key={servico.id} className="crm-servico">
+                    <label className="crm-check" htmlFor={`nc-serv-${servico.id}`}>
+                      <input type="checkbox" id={`nc-serv-${servico.id}`} name="servicos" value={servico.id} />
+                      <span>{servico.title}</span>
+                    </label>
+                    <span className="crm-servico-area">
+                      <input className="input" name={`area_${servico.id}`} type="number" min={1} inputMode="numeric" placeholder="0" aria-label={`Metragem de ${servico.title} em m²`} />
+                      <span className="crm-servico-un">m²</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="crm-hint">Digitar a metragem já marca o serviço; a soma vira a área do contato.</p>
+              <div className="crm-row-2">
+                <div className="field-group">
+                  <label className="field-label" htmlFor="nc-tipo">Imóvel</label>
+                  <select className="select" id="nc-tipo" name="tipoImovel" defaultValue="Residencial">
+                    <option value="Residencial">Residencial</option>
+                    <option value="Comercial">Comercial</option>
+                  </select>
+                </div>
+                <div className="field-group">
+                  <label className="field-label" htmlFor="nc-ambientes">Ambientes</label>
+                  <input className="input" id="nc-ambientes" name="ambientes" type="number" min={1} max={200} inputMode="numeric" placeholder="1" />
+                </div>
+              </div>
+            </fieldset>
+            <fieldset className="crm-section">
+              <legend>Onde e quando</legend>
+              <div className="crm-row-2">
+                <div className="field-group">
+                  <label className="field-label" htmlFor="nc-cidade">Cidade</label>
+                  <input className="input" id="nc-cidade" name="cidade" maxLength={80} defaultValue="Belo Horizonte" />
+                </div>
+                <div className="field-group">
+                  <label className="field-label" htmlFor="nc-bairro">Bairro</label>
+                  <input className="input" id="nc-bairro" name="bairro" maxLength={80} />
+                </div>
+              </div>
+              <div className="field-group">
+                <label className="field-label" htmlFor="nc-prazo">Prazo</label>
+                <input className="input" id="nc-prazo" name="prazo" maxLength={60} placeholder="este mês, 30 dias, sem pressa" />
+              </div>
+            </fieldset>
+            <fieldset className="crm-section">
+              <legend>Como chegou</legend>
+              <div className="crm-chips-origem">
+                {leadOrigens.map((origem) => (
+                  <label key={origem.id} className="crm-chip-radio">
+                    <input type="radio" name="origem" value={origem.id} defaultChecked={origem.id === "presencial"} />
+                    <span>{origem.label}</span>
                   </label>
                 ))}
               </div>
             </fieldset>
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-tipo">Imóvel</label>
-              <select className="select" id="nc-tipo" name="tipoImovel" defaultValue="Residencial">
-                <option value="Residencial">Residencial</option>
-                <option value="Comercial">Comercial</option>
-              </select>
-            </div>
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-area">Área (m²)</label>
-              <input className="input" id="nc-area" name="areaM2" inputMode="numeric" />
-            </div>
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-amb">Ambientes</label>
-              <input className="input" id="nc-amb" name="ambientes" inputMode="numeric" />
-            </div>
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-cidade">Cidade</label>
-              <input className="input" id="nc-cidade" name="cidade" defaultValue="Belo Horizonte" maxLength={80} />
-            </div>
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-bairro">Bairro</label>
-              <input className="input" id="nc-bairro" name="bairro" maxLength={80} />
-            </div>
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-prazo">Prazo</label>
-              <input className="input" id="nc-prazo" name="prazo" maxLength={60} />
-            </div>
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-origem">Como chegou</label>
-              <select className="select" id="nc-origem" name="origem" defaultValue="presencial">
-                {leadOrigens.map((item) => (
-                  <option key={item.id} value={item.id}>{item.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="field-group">
-              <label className="field-label" htmlFor="nc-detalhes">Anotações</label>
-              <textarea className="input" id="nc-detalhes" name="detalhes" rows={3} maxLength={2000} />
-            </div>
+            <details className="crm-more">
+              <summary>Anotações</summary>
+              <div className="field-group">
+                <label className="field-label" htmlFor="nc-detalhes">Detalhes da obra</label>
+                <textarea className="input" id="nc-detalhes" name="detalhes" rows={4} maxLength={2000} />
+              </div>
+            </details>
           </form>
         </Drawer>
 
