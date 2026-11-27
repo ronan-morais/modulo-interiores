@@ -1,120 +1,184 @@
 /**
- * Atendimento do Direct da Módulo: respostas curtas, humanas e sem repetição.
+ * Atendimento do Direct da Módulo: reconhece o que o cliente disse e responde
+ * com base nisso (serviço + metragem), sem repetir pergunta e sem link à toa.
  *
  * Regras do Ronan (27/11/2026):
- * - nada de link do site em toda resposta (gera miniatura no chat). Só manda
- *   link quando a pessoa pedir o site/link explicitamente.
- * - a resposta não pode repetir a anterior da mesma conversa.
- * - quando a pessoa pergunta valor, pede metragem e serviço antes de opinar.
+ * - primeiro ESCUTA: se o cliente falou "forro de PVC 3 m²", a resposta tem que
+ *   citar forro de PVC e 3 m² — nunca perguntar de novo o que já foi dito
+ * - link do site só quando pedirem link OU quando fecha orçamento (e mesmo aí,
+ *   sem URL, falando "no site", pra não gerar miniatura)
+ * - sem repetir a mesma resposta na mesma conversa
  */
-const SITE = "modulointeriores.com.br";
-const WHATS = "(31) 99740-8629";
-
 export type Contexto = {
   primeiro: boolean;
   anteriores: string[];
+  servico?: string | null;
+  metragem?: string | null;
 };
 
-function normal(texto: string): string {
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+const SERVICOS: [RegExp, string][] = [
+  [/forro\s+(de\s+)?pvc|pvc/i, "Forro de PVC"],
+  [/forro\s+modular|modular/i, "Forro modular"],
+  [/forro\s+(de\s+)?gesso|gesso|sanca|rebaix/i, "Forro em gesso"],
+  [/piso\s+vin[ií]lico|vin[ií]lico|vinil/i, "Piso vinílico"],
+  [/piso\s+modular|piso\s+elevado|piso\s+t[eé]cnico/i, "Piso modular"],
+  [/m[oó]vel|closet|arm[aá]rio|nicho/i, "Móveis de drywall"],
+  [/drywall|divis[oó]ria|parede/i, "Parede de drywall"],
+];
+
+const NUMEROS: Record<string, string> = {
+  um: "1", dois: "2", tres: "3", três: "3", quatro: "4", cinco: "5",
+  seis: "6", sete: "7", oito: "8", nove: "9", dez: "10", doze: "12",
+  quinze: "15", vinte: "20", trinta: "30", quarenta: "40", cinquenta: "50",
+};
+
+export function extrairServico(texto: string): string | null {
+  for (const [padrao, nome] of SERVICOS) {
+    if (padrao.test(texto)) return nome;
+  }
+  return null;
 }
 
-function escolher(opcoes: string[], anteriores: string[], semente: string): string {
+export function extrairMetragem(texto: string): string | null {
+  const limpo = texto.toLowerCase();
+  const numerico = limpo.match(/(\d+[.,]?\d*)\s*(m2|m²|mts?|metros?(\s+quadrados)?)/);
+  if (numerico) {
+    const valor = numerico[1].replace(",", ".");
+    return `${valor} m²`;
+  }
+  const palavra = limpo.match(/\b(um|dois|tres|três|quatro|cinco|seis|sete|oito|nove|dez|doze|quinze|vinte|trinta|quarenta|cinquenta)\s*(metros?|m2|m²)/);
+  if (palavra) return `${NUMEROS[palavra[1]]} m²`;
+  return null;
+}
+
+const SITE = "modulointeriores.com.br";
+const ORCAMENTO = "modulointeriores.com.br/orcamento";
+
+function variar(opcoes: string[], anteriores: string[]): string {
   const livres = opcoes.filter((o) => !anteriores.includes(o));
-  const lista = livres.length > 0 ? livres : opcoes;
-  let soma = 0;
-  for (let i = 0; i < semente.length; i += 1) soma += semente.charCodeAt(i);
-  return lista[soma % lista.length];
-}
-
-const TEM = (t: string, palavras: string[]) => palavras.some((p) => t.includes(p));
-
-export function temPedidoDeLink(t: string): boolean {
-  return TEM(t, ["link", "site", "endereco do site", "pagina", "formulario"]);
+  return (livres.length ? livres : opcoes)[0];
 }
 
 export function responder(texto: string, ctx: Contexto): string {
-  const t = normal(texto);
+  const t = texto.toLowerCase().trim();
   const antes = ctx.anteriores ?? [];
-  const escolha = (opcoes: string[]) => escolher(opcoes, antes, t);
+  const pediuLink = /\blink\b|qual\s+o\s+site|manda\s+o\s+site|endere[cç]o\s+do\s+site/i.test(t);
+  const reclamou = /j[aá]\s+falei|como\s+falei|de\s+novo|repit/i.test(t);
+  const servico = ctx.servico ?? null;
+  const metragem = ctx.metragem ?? null;
 
-  if (TEM(t, ["parar", "nao quero", "sair"])) {
-    return "Tudo bem, sem problema. Se precisar é só chamar por aqui 😊";
-  }
-
-  if (temPedidoDeLink(t)) {
-    return (
-      `O site é ${SITE} — o orçamento fica em ${SITE}/orcamento e os serviços em ${SITE}/servicos. ` +
-      `Se preferir, eu mesmo já monto o orçamento por aqui: me diz o serviço e a metragem.`
+  if (pediuLink) {
+    return variar(
+      [
+        `Claro: ${SITE}. O formulário de orçamento fica em ${ORCAMENTO} — preenchendo serviço e metragem a gente responde com o valor.`,
+        `O site é ${SITE}, e o orçamento em ${ORCAMENTO}. Se preferir, me passa aqui serviço e metragem que eu já encaminho.`,
+      ],
+      antes,
     );
   }
 
-  if (TEM(t, ["quanto custa", "quanto fica", "preco", "valor", "quanto sai", "custa"])) {
-    return escolha([
-      "O valor depende da metragem e do que vai ser feito. Me diz o serviço e o tamanho aproximado do ambiente que eu já te passo uma faixa.",
-      "Pra te dar um número eu preciso de duas coisas: o serviço e a metragem. Me conta que eu já te oriento.",
-      "Muda bastante entre forro, parede e piso. Qual é o seu caso e quantos metros, mais ou menos?",
-    ]);
+  // serviço + metragem já conhecidos: reconhece e encaminha pro orçamento
+  if (servico && metragem) {
+    const base = `${servico} em ${metragem}${reclamou ? ", anotado de novo e sem perguntar outra vez" : ", anotado"}.`;
+    if (/or[cç]amento|cota[cç][aã]o|valor|pre[cç]o|quanto/i.test(t) || reclamou || metragem) {
+      return variar(
+        [
+          `${base} Pra fechar o valor a gente usa o formulário de orçamento do site: você informa o serviço e a metragem e a gente responde com a conta. Se quiser, já passo pro Ronan te chamar.`,
+          `${base} A cotação sai pelo formulário do site — só serviço e metragem — e a resposta vem com o valor. Prefere que o Ronan te chame no WhatsApp?`,
+        ],
+        antes,
+      );
+    }
   }
 
-  if (TEM(t, ["orcamento", "cotacao", "cotar", "simular"])) {
-    return escolha([
-      "Eu monto o orçamento por aqui mesmo: me diz o serviço, a metragem e o bairro. Se preferir, o site da Módulo tem o formulário que faz essa conta.",
-      "Consigo levantar agora: serviço, metragem e bairro. Também tem o formulário no site da Módulo, se você preferir preencher sozinho.",
-    ]);
+  if (servico && !metragem) {
+    return variar(
+      [
+        `${servico}, certo. Quantos metros quadrados, mais ou menos?`,
+        `${servico}, anotado. Me diz a metragem aproximada que eu já te oriento.`,
+      ],
+      antes,
+    );
   }
 
-  if (TEM(t, ["telefone", "whatsapp", "zap", "contato", "email", "e-mail", "numero"])) {
-    return escolha([
-      `WhatsApp ${WHATS} — é o caminho mais rápido. O site da Módulo também tem contato e formulário, se preferir por lá.`,
-      `Pode chamar no ${WHATS}. Se quiser ver tudo antes, o site da Módulo tem os serviços e o contato completo.`,
-    ]);
+  if (metragem && !servico) {
+    return variar(
+      [
+        `${metragem}, anotado. É forro, parede ou piso?`,
+        `${metragem} de área. Qual o serviço — forro, parede ou piso?`,
+      ],
+      antes,
+    );
   }
 
-  if (TEM(t, ["onde", "atende", "atendem", "regiao", "bh", "belo horizonte", "contagem", "endereco"])) {
-    return escolha([
-      "Atendemos Belo Horizonte e região metropolitana, com visita técnica sem custo. De qual bairro você fala?",
-      "Trabalhamos em BH e região (Contagem, Betim, Santa Luzia). A visita pra medir é sem custo.",
-    ]);
+  if (/pre[cç]o|valor|quanto\s+custa|or[cç]amento|cota[cç][aã]o|quanto\s+fica/i.test(t)) {
+    return variar(
+      [
+        "O valor depende do serviço e da metragem. Me diz o que você quer fazer e o tamanho do ambiente que eu já te passo uma faixa.",
+        "Pra te dar número eu preciso de duas coisas: serviço e metragem. Me passa esses dois que eu já respondo.",
+      ],
+      antes,
+    );
   }
 
-  if (TEM(t, ["prazo", "quando fica", "demora", "tempo", "entrega"])) {
-    return escolha([
-      "O prazo depende do tamanho e da agenda da equipe. Passando o serviço e a metragem eu já te digo a previsão.",
-      "Forro e parede são rápidos; obra maior entra em agenda. Me diz o tamanho que eu te passo a previsão real.",
-    ]);
+  if (/whats|telefone|n[uú]mero|contato|email|e-mail/i.test(t)) {
+    return variar(
+      [
+        "WhatsApp da Módulo: (31) 99740-8629. O site também tem o contato e o formulário de orçamento.",
+        "Falo com você pelo (31) 99740-8629 no WhatsApp. E no site da Módulo tem o contato e o orçamento online.",
+      ],
+      antes,
+    );
   }
 
-  if (TEM(t, ["drywall", "parede", "divisoria", "forro", "pvc", "gesso", "modular", "piso", "vinilico", "movei", "sanca"])) {
-    return escolha([
-      "Trabalhamos com isso: projeto, estrutura e acabamento, com equipe própria. Me conta o ambiente e a metragem que eu já te oriento e passo a faixa de valor.",
-      "É um dos nossos serviços — do projeto ao acabamento pronto pra pintar. Quantos metros, mais ou menos, e em qual ambiente?",
-    ]);
+  if (/onde|atende|regi[aã]o|bh|contagem|endere[cç]o/i.test(t)) {
+    return variar(
+      [
+        "Atendemos Belo Horizonte e região metropolitana, com visita técnica sem custo.",
+        "É BH e região metropolitana (Contagem e entorno). A visita técnica pra medir não é cobrada.",
+      ],
+      antes,
+    );
   }
 
-  if (ctx.primeiro || TEM(t, ["oi", "ola", "bom dia", "boa tarde", "boa noite", "tudo bem", "opa"])) {
-    return escolha([
-      "Oi! Tudo bem? 😊 Aqui é a Módulo Interiores, de BH — drywall, forros, pisos e móveis sob medida. O que você está precisando?",
-      "Olá! Tudo certo por aqui 😊 Módulo Interiores. Me conta o que você quer fazer que eu já te oriento.",
-      "Oi! Tudo bem? Me diz o ambiente e o que você quer fazer que eu te ajudo a chegar no valor.",
-    ]);
+  if (/prazo|quando|demora|tempo/i.test(t)) {
+    return variar(
+      [
+        "O prazo depende do tamanho e da agenda. Passando serviço e metragem eu já te digo a previsão.",
+        "Varia com a metragem e o serviço — me diz os dois que eu falo o prazo.",
+      ],
+      antes,
+    );
   }
 
-  if (TEM(t, ["obrigad", "valeu", "vlw", "agradec"])) {
-    return escolha([
-      "Eu que agradeço 😊 Qualquer coisa é só chamar por aqui.",
-      "Imagina! Tô por aqui se precisar.",
-    ]);
+  if (/obrigad|valeu|vlw|agradec/i.test(t)) {
+    return variar(
+      ["Eu que agradeço 😊 Qualquer coisa é só chamar.", "Imagina! Qualquer dúvida me chama aqui 😊"],
+      antes,
+    );
   }
 
-  return escolha([
-    "Me conta um pouco mais: é forro, parede, piso ou móvel sob medida? Com isso eu já te oriento e passo a faixa de valor.",
-    "Pra eu te ajudar direito: qual serviço você precisa e qual o tamanho do ambiente?",
-    "Consigo te orientar sim. Me diz o que você quer fazer e quantos metros, mais ou menos.",
-  ]);
+  if (/^(oi|ola|olá|opa|bom dia|boa tarde|boa noite|tudo bem|e ai|e aí)[\s!.?]*$/i.test(t)) {
+    if (ctx.primeiro) {
+      return variar(
+        [
+          "Oi! Tudo bem? 😊 Aqui é a Módulo Interiores, de BH. O que você precisa — forro, parede, piso ou móvel sob medida?",
+          "Olá! Tudo certo por aqui 😊 Módulo Interiores. Me conta o que você quer fazer que eu já te oriento.",
+        ],
+        antes,
+      );
+    }
+    return variar(
+      ["Oi de novo! 😊 Seguimos no que você precisa?", "Oi! Continuo por aqui — o que você quer fazer?"],
+      antes,
+    );
+  }
+
+  return variar(
+    [
+      "Entendi. É forro, parede, piso ou móvel? Com o serviço e a metragem eu já te oriento no valor.",
+      "Me diz o serviço (forro, parede, piso, móvel) e a metragem que eu já respondo certinho.",
+    ],
+    antes,
+  );
 }

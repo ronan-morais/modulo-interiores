@@ -1,6 +1,6 @@
 import { after, NextResponse } from "next/server";
 
-import { responder } from "@/lib/instagram-dm";
+import { extrairMetragem, extrairServico, responder } from "@/lib/instagram-dm";
 import { atualizarEnvio, historicoRecente, registrarEvento, ultimosEventos } from "@/lib/ig-log";
 
 export const runtime = "nodejs";
@@ -134,21 +134,38 @@ export async function POST(request: Request) {
     }
   }
 
-  // memória curta por conversa: evita repetir a mesma resposta
-  const historicos = new Map<string, string[]>();
+  // memória curta por conversa: histórico + serviço/metragem já ditos pelo cliente
+  const memorias = new Map<string, { respostas: string[]; recebidos: string[] }>();
   for (const bruto of brutos) {
-    if (historicos.has(bruto.para)) continue;
+    if (memorias.has(bruto.para)) continue;
     const linhas = await historicoRecente(bruto.para, 6);
-    historicos.set(bruto.para, linhas.map((l) => l.resposta));
+    memorias.set(bruto.para, {
+      respostas: linhas.map((l) => l.resposta),
+      recebidos: linhas.map((l) => l.recebido),
+    });
   }
 
   const tarefas: { para: string; texto: string; chave: string; recebido: string; id: number | null }[] = [];
   for (const bruto of brutos) {
-    const anteriores = historicos.get(bruto.para) ?? [];
+    const memoria = memorias.get(bruto.para) ?? { respostas: [], recebidos: [] };
+    let servico: string | null = null;
+    let metragem: string | null = null;
+    for (const antigo of [...memoria.recebidos].reverse()) {
+      servico = servico ?? extrairServico(antigo);
+      metragem = metragem ?? extrairMetragem(antigo);
+    }
+    servico = extrairServico(bruto.texto) ?? servico;
+    metragem = extrairMetragem(bruto.texto) ?? metragem;
+
     const texto = bruto.texto
-      ? responder(bruto.texto, { primeiro: anteriores.length === 0, anteriores })
+      ? responder(bruto.texto, {
+          primeiro: memoria.respostas.length === 0,
+          anteriores: memoria.respostas,
+          servico,
+          metragem,
+        })
       : "Recebi o arquivo 😊 Me conta o que você quer fazer com ele e a metragem, que eu já te oriento.";
-    anteriores.push(texto);
+    memoria.respostas.push(texto);
     tarefas.push({ para: bruto.para, texto, chave: bruto.chave, recebido: bruto.recebido, id: null });
   }
 
