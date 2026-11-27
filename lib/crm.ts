@@ -408,3 +408,44 @@ export async function garantirClienteDoLead(id: number): Promise<number | null> 
   });
   return Number(ins.lastInsertRowid);
 }
+
+export type LeadNovo = {
+  nome: string;
+  whatsapp: string;
+  email: string;
+  servicos: string[];
+  tipoImovel: string;
+  areaM2: number | null;
+  ambientes: number | null;
+  cidade: string;
+  bairro: string;
+  prazo: string;
+  detalhes: string;
+  origem: string;
+};
+
+export async function createLead(dados: LeadNovo): Promise<number> {
+  await ensureCrmSchema();
+  const servicos = dados.servicos.map((titulo) => ({ id: titulo, titulo }));
+  const res = await getDb().execute({
+    sql: `INSERT INTO orcamentos (
+        nome, whatsapp, email, servicos, tipo_imovel, area_m2, ambientes,
+        cidade, bairro, prazo, detalhes, consentimento, origem, user_agent
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 'crm-manual')`,
+    args: [
+      dados.nome,
+      dados.whatsapp || null,
+      dados.email || null,
+      JSON.stringify(servicos),
+      dados.tipoImovel || "Residencial",
+      dados.areaM2,
+      dados.ambientes,
+      dados.cidade || "Belo Horizonte",
+      dados.bairro || null,
+      dados.prazo || "A definir",
+      dados.detalhes || null,
+      dados.origem,
+    ],
+  });
+  return Number(res.lastInsertRowid ?? 0);
+}

@@ -9,12 +9,15 @@ import {
   isAuthenticated,
   leadCounts,
   leadStatuses,
+  leadOrigens,
   listLeads,
   origemLabel,
   statusLabel,
   type LeadStatus,
 } from "@/lib/crm";
-import { login } from "./actions";
+import { createLeadManual, login } from "./actions";
+import { Drawer } from "@/components/Drawer";
+import { quoteOptions } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contatos",
@@ -175,6 +178,73 @@ export default async function CrmPage({
             ? "Mostrando os 200 contatos mais recentes."
             : `${leads.length} ${leads.length === 1 ? "contato" : "contatos"} nesta visão.`}
         </p>
+        <Drawer title="Novo contato" formId="form-contato-novo" submitLabel="Salvar contato">
+          <form id="form-contato-novo" action={createLeadManual} className="crm-form">
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-nome">Nome</label>
+              <input className="input" id="nc-nome" name="nome" required maxLength={120} />
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-whatsapp">WhatsApp</label>
+              <input className="input" id="nc-whatsapp" name="whatsapp" maxLength={40} inputMode="tel" />
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-email">E-mail</label>
+              <input className="input" id="nc-email" name="email" type="email" maxLength={160} />
+            </div>
+            <fieldset className="field-group">
+              <legend className="field-label">Serviços</legend>
+              <div className="crm-check-grid">
+                {quoteOptions.map((servico) => (
+                  <label key={servico.id} className="crm-check">
+                    <input type="checkbox" name="servicos" value={servico.title} />
+                    <span>{servico.title}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-tipo">Imóvel</label>
+              <select className="select" id="nc-tipo" name="tipoImovel" defaultValue="Residencial">
+                <option value="Residencial">Residencial</option>
+                <option value="Comercial">Comercial</option>
+              </select>
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-area">Área (m²)</label>
+              <input className="input" id="nc-area" name="areaM2" inputMode="numeric" />
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-amb">Ambientes</label>
+              <input className="input" id="nc-amb" name="ambientes" inputMode="numeric" />
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-cidade">Cidade</label>
+              <input className="input" id="nc-cidade" name="cidade" defaultValue="Belo Horizonte" maxLength={80} />
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-bairro">Bairro</label>
+              <input className="input" id="nc-bairro" name="bairro" maxLength={80} />
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-prazo">Prazo</label>
+              <input className="input" id="nc-prazo" name="prazo" maxLength={60} />
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-origem">Como chegou</label>
+              <select className="select" id="nc-origem" name="origem" defaultValue="presencial">
+                {leadOrigens.map((item) => (
+                  <option key={item.id} value={item.id}>{item.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="nc-detalhes">Anotações</label>
+              <textarea className="input" id="nc-detalhes" name="detalhes" rows={3} maxLength={2000} />
+            </div>
+          </form>
+        </Drawer>
+
     </CrmShell>
   );
 }

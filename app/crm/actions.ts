@@ -8,6 +8,7 @@ import {
   SESSION_MAX_AGE,
   createSessionToken,
   credentialsValid,
+  createLead,
   getLead,
   isAuthenticated,
   isLeadOrigem,
@@ -136,6 +137,34 @@ export async function saveLead(formData: FormData) {
   revalidatePath("/crm");
   revalidatePath(`/crm/${id}`);
   redirect(`/crm/${id}?salvo=1`);
+}
+
+
+export async function createLeadManual(formData: FormData) {
+  await requireSession();
+
+  const nome = readText(formData, "nome", 120);
+  if (!nome) redirect("/crm?erro=lead");
+
+  const servicos = formData.getAll("servicos").filter((v): v is string => typeof v === "string");
+
+  const id = await createLead({
+    nome,
+    whatsapp: readText(formData, "whatsapp", 40),
+    email: readText(formData, "email", 160),
+    servicos,
+    tipoImovel: readText(formData, "tipoImovel", 20) || "Residencial",
+    areaM2: Number(formData.get("areaM2")) || null,
+    ambientes: Number(formData.get("ambientes")) || null,
+    cidade: readText(formData, "cidade", 80),
+    bairro: readText(formData, "bairro", 80),
+    prazo: readText(formData, "prazo", 60),
+    detalhes: readText(formData, "detalhes", 2000),
+    origem: isLeadOrigem(formData.get("origem")) ? String(formData.get("origem")) : "presencial",
+  });
+
+  revalidatePath("/crm");
+  redirect(`/crm/${id}`);
 }
 
 export async function deleteLead(formData: FormData) {

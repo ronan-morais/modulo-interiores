@@ -5644,3 +5644,29 @@ article[id] {
     padding-bottom: 104px;
   }
 }
+
+/* Origem do contato + grade de serviços no drawer de novo contato */
+.crm-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 14px;
+}
+
+.crm-badge-origem {
+  background: #f2efe9;
+  color: #6b4a32;
+  border: 1px solid #e2d9cd;
+  font-weight: 600;
+}
+
+.crm-badge-origem[data-origem="instagram-direct"] {
+  background: #f7e9f0;
+  color: #8a2b58;
+  border-color: #eed3e0;
+}
+
+.crm-badge-origem[data-origem="presencial"] {
+  background: #eaf1ea;
+  color: #2f6b45;
+  border-color: #d5e6d8;
+}
