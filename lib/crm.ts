@@ -421,6 +421,7 @@ export type LeadNovo = {
   bairro: string;
   prazo: string;
   detalhes: string;
+  notas?: string;
   origem: string;
 };
 
@@ -435,8 +436,8 @@ export async function createLead(dados: LeadNovo): Promise<number> {
   const res = await getDb().execute({
     sql: `INSERT INTO orcamentos (
         nome, whatsapp, email, servicos, tipo_imovel, area_m2, ambientes,
-        cidade, bairro, prazo, detalhes, consentimento, origem, user_agent
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 'crm-manual')`,
+        cidade, bairro, prazo, detalhes, notas, consentimento, origem, user_agent
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, 'crm-manual')`,
     args: [
       dados.nome,
       dados.whatsapp || null,
@@ -449,8 +450,36 @@ export async function createLead(dados: LeadNovo): Promise<number> {
       dados.bairro || null,
       dados.prazo || "A definir",
       dados.detalhes || null,
+      dados.notas || null,
       dados.origem,
     ],
   });
   return Number(res.lastInsertRowid ?? 0);
+}
+
+/** Grava anexos (fotos/planta) de um contato a partir de data URLs. */
+export async function salvarAnexos(
+  leadId: number,
+  arquivos: { nome: string; dados: string }[],
+): Promise<number> {
+  if (!leadId || !arquivos.length) return 0;
+  await ensureCrmSchema();
+  let gravados = 0;
+  for (const arquivo of arquivos) {
+    const match = /^data:([^;]+);base64,([\s\S]+)$/.exec(arquivo.dados ?? "");
+    if (!match) continue;
+    if (match[2].length > 3_000_000) continue;
+    await getDb().execute({
+      sql: `INSERT INTO anexos (lead_id, nome, tipo, tamanho, dados) VALUES (?, ?, ?, ?, ?)`,
+      args: [
+        leadId,
+        (arquivo.nome || "anexo").slice(0, 160),
+        match[1],
+        Math.round(match[2].length * 0.75),
+        match[2],
+      ],
+    });
+    gravados += 1;
+  }
+  return gravados;
 }

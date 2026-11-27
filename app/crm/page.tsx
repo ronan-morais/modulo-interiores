@@ -16,6 +16,7 @@ import {
   type LeadStatus,
 } from "@/lib/crm";
 import { createLeadManual, login } from "./actions";
+import { CrmAnexoInput } from "@/components/CrmAnexoInput";
 import { Drawer } from "@/components/Drawer";
 import { quoteOptions } from "@/lib/site";
 
@@ -285,13 +286,23 @@ export default async function CrmPage({
                 ))}
               </div>
             </fieldset>
-            <details className="crm-more">
-              <summary>Anotações</summary>
+            <fieldset className="crm-section">
+              <legend>Anotações</legend>
               <div className="field-group">
                 <label className="field-label" htmlFor="nc-detalhes">Detalhes da obra</label>
-                <textarea className="input" id="nc-detalhes" name="detalhes" rows={4} maxLength={2000} />
+                <textarea className="input" id="nc-detalhes" name="detalhes" rows={3} maxLength={2000} placeholder="O que o cliente pediu, ambientes, acabamento" />
               </div>
-            </details>
+              <div className="field-group">
+                <label className="field-label" htmlFor="nc-notas">Anotações da visita (medição)</label>
+                <textarea className="input" id="nc-notas" name="notas" rows={4} maxLength={4000} placeholder="Medida real, pé-direito, obstáculos, o que mudou do pedido" />
+              </div>
+            </fieldset>
+
+            <fieldset className="crm-section">
+              <legend>Fotos e planta</legend>
+              <CrmAnexoInput />
+            </fieldset>
+
           </form>
         </Drawer>
 

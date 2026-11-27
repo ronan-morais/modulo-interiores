@@ -13,6 +13,7 @@ import {
   isAuthenticated,
   isLeadOrigem,
   isLeadStatus,
+  salvarAnexos,
   removeLead,
   updateLead,
 } from "@/lib/crm";
@@ -170,8 +171,27 @@ export async function createLeadManual(formData: FormData) {
     bairro: readText(formData, "bairro", 80),
     prazo: readText(formData, "prazo", 60),
     detalhes: readText(formData, "detalhes", 2000),
+    notas: readText(formData, "notas", 4000),
     origem: isLeadOrigem(formData.get("origem")) ? String(formData.get("origem")) : "presencial",
   });
+
+  // fotos e planta escolhidas no drawer (data URLs em JSON)
+  const bruto = String(formData.get("anexos") ?? "").trim();
+  if (bruto) {
+    try {
+      const arquivos = JSON.parse(bruto) as { nome?: string; dados?: string }[];
+      if (Array.isArray(arquivos)) {
+        await salvarAnexos(
+          id,
+          arquivos
+            .filter((a) => typeof a?.dados === "string")
+            .map((a) => ({ nome: String(a.nome ?? "anexo"), dados: String(a.dados) })),
+        );
+      }
+    } catch {
+      // JSON invalido: contato salvo, anexos ignorados
+    }
+  }
 
   revalidatePath("/crm");
   revalidatePath(`/crm/${id}`);
