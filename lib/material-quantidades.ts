@@ -309,6 +309,12 @@ function quantidadeAuto(
       return arredondar(area * 1.05);
     case "rodape":
       return arredondar(perimetro(medidas));
+    case "parafuso_cx":
+      return Math.max(1, pecas((area * (sistema.id === "forro" ? 25 : 30) * perda) / 1000));
+    case "pendural":
+      return pecas((area * perda) / 1.44);
+    case "f530":
+      return pecas((area * 1.7 * perda) / 3);
     // forro de PVC
     case "regua_pvc":
       return pecas((area * perda) / 1.19);
@@ -557,4 +563,32 @@ Object.assign(templatesNovos, {
   ],
 });
 
+/* ---------- templates base (drywall e piso) com preço da tabela única ---------- */
+
+const templatesBase: TemplatesPorSistema = {
+  parede: [
+    { chave: "placa", descricao: "Chapa drywall 1,80 × 1,20 × 12,5 mm", unidade: "un", valorUnitCents: pr("placa_std_125", 62), regra: "auto", fator: null },
+    { chave: "montante", descricao: "Montante 48 mm — barra 3 m", unidade: "un", valorUnitCents: pr("montante_48", 21.5), regra: "auto", fator: null },
+    { chave: "guia", descricao: "Guia 48 mm — barra 3 m", unidade: "un", valorUnitCents: pr("guia_48", 17.8), regra: "auto", fator: null },
+    { chave: "parafuso_cx", descricao: "Parafuso GN25 — caixa 1.000", unidade: "cx", valorUnitCents: pr("parafuso_gn25", 92), regra: "auto", fator: null },
+    { chave: "massa", descricao: "Massa para juntas — saco 20 kg", unidade: "un", valorUnitCents: pr("massa_20kg", 79), regra: "auto", fator: null },
+    { chave: "fita", descricao: "Fita de papel — rolo 150 m", unidade: "un", valorUnitCents: pr("fita_150m", 46), regra: "auto", fator: null },
+  ],
+  forro: [
+    { chave: "placa", descricao: "Chapa drywall 1,80 × 1,20 × 12,5 mm", unidade: "un", valorUnitCents: pr("placa_std_125", 62), regra: "auto", fator: null },
+    { chave: "f530", descricao: "Perfil F530 — barra 3 m (a cada 0,60 m)", unidade: "un", valorUnitCents: pr("perfil_f530", 23.5), regra: "auto", fator: null },
+    { chave: "guia", descricao: "Canaleta perimetral F47 — barra 3 m", unidade: "un", valorUnitCents: pr("canaleta_f47", 16.9), regra: "auto", fator: null },
+    { chave: "pendural", descricao: "Pendural regulável (grade 1,20 × 1,20 m)", unidade: "un", valorUnitCents: pr("pendural_reg", 5.2), regra: "auto", fator: null },
+    { chave: "parafuso_cx", descricao: "Parafuso GN25 — caixa 1.000", unidade: "cx", valorUnitCents: pr("parafuso_gn25", 92), regra: "auto", fator: null },
+    { chave: "massa", descricao: "Massa para juntas — saco 20 kg", unidade: "un", valorUnitCents: pr("massa_20kg", 79), regra: "auto", fator: null },
+    { chave: "fita", descricao: "Fita de papel — rolo 150 m", unidade: "un", valorUnitCents: pr("fita_150m", 46), regra: "auto", fator: null },
+  ],
+  piso: [
+    { chave: "piso", descricao: "Piso vinílico em régua (m²)", unidade: "m²", valorUnitCents: pr("piso_vinilico_m2", 89), regra: "auto", fator: null },
+    { chave: "cola_piso", descricao: "Cola para piso vinílico", unidade: "kg", valorUnitCents: pr("cola_piso", 28), regra: "auto", fator: null },
+    { chave: "rodape_pvc", descricao: "Rodapé PVC — barra 2,40 m", unidade: "un", valorUnitCents: pr("rodape", 34), regra: "auto", fator: null },
+  ],
+};
+
+Object.assign(templatesPadrao, templatesBase);
 Object.assign(templatesPadrao, templatesNovos);
