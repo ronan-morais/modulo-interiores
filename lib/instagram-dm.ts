@@ -59,7 +59,7 @@ function variar(opcoes: string[], anteriores: string[]): string {
   return (livres.length ? livres : opcoes)[0];
 }
 
-export function responder(texto: string, ctx: Contexto): string {
+export function responder(texto: string, ctx: Contexto): string | null {
   const t = texto.toLowerCase().trim();
   const antes = ctx.anteriores ?? [];
   const pediuLink = /\blink\b|qual\s+o\s+site|manda\s+o\s+site/i.test(t);
@@ -134,97 +134,15 @@ export function responder(texto: string, ctx: Contexto): string {
     );
   }
 
-  const querPreco = /or[cç]amento|cota[cç][aã]o|valor|pre[cç]o|quanto|custa/i.test(t);
-  const saudacao = /^(oi|ola|olá|opa|bom dia|boa tarde|boa noite|tudo bem|e ai|e aí)[\s!.?]*$/i.test(t);
-  const concordou = /^(sim|isso|claro|pode|beleza|ok|certo|uhum|perfeito|exato)[\s!.?]*$/i.test(t);
-
-  // 1) quem já disse tudo não ouve a mesma pergunta de novo
-  if (servico && metragem) {
-    if (querPreco && !jaFalouOrcamento) {
-      return variar(
-        [
-          `${assunto}. A cotação sai pelo formulário de orçamento do site — serviço e metragem — e a gente responde com o valor. Ou eu já passo pro Ronan te chamar.`,
-          `${assunto}. Pra fechar valor, o caminho é o formulário do site (serviço + metragem); se preferir, encaminho pro Ronan no WhatsApp.`,
-        ],
-        antes,
-      );
-    }
-    if (jaPediuDados) {
-      return variar(
-        [
-          `Anotado: ${assunto}. Só falta teu nome e o bairro pra eu passar pro Ronan fechar a medida.`,
-          `Perfeito, ${assunto} anotado. Me passa teu nome e o bairro que o Ronan assume daqui.`,
-        ],
-        antes,
-      );
-    }
+  if (/^(oi|ola|olá|opa|bom dia|boa tarde|boa noite|tudo bem|e aí)[\s!.?]*$/i.test(t)) {
     return variar(
       [
-        `Anotado: ${assunto}. Me diz teu nome e o bairro que eu já encaminho o orçamento pro Ronan.`,
-        `${assunto}. Pra encaminhar, só me passa teu nome e o bairro.`,
+        "Oi! Tudo bem? 😊 Módulo Interiores, de BH. O que você precisa — forro, parede, piso ou móvel?",
+        "Olá! Tudo certo 😊 Me conta o que você quer fazer que eu já te oriento.",
       ],
       antes,
     );
   }
 
-  // 2) falta uma das duas informações — pede só o que falta
-  if (servico && !metragem) {
-    return variar(
-      [`${servico}, certo. Quantos metros quadrados, mais ou menos?`, `${servico}, anotado. E a metragem?`],
-      antes,
-    );
-  }
-  if (metragem && !servico) {
-    return variar(
-      [`${metragem}, anotado. É forro, parede ou piso?`, `${metragem} de área. Qual serviço — forro, parede ou piso?`],
-      antes,
-    );
-  }
-
-  if (reclamou) {
-    return variar(
-      [
-        "Tem razão, desculpa a repetição. Me diz em uma frase o que você precisa e a metragem — eu não pergunto de novo.",
-        "Desculpa, errei na repetição. Só preciso do serviço e dos metros, numa frase.",
-      ],
-      antes,
-    );
-  }
-
-  if (querPreco) {
-    return variar(
-      [
-        "O valor depende do serviço e da metragem. Me diz o que você quer fazer e o tamanho do ambiente que eu já te oriento.",
-        "Pra te dar número eu preciso de duas coisas: serviço e metragem. Manda os dois que eu já respondo.",
-      ],
-      antes,
-    );
-  }
-
-  if (saudacao || concordou) {
-    if (ctx.primeiro) {
-      return variar(
-        [
-          "Oi! Tudo bem? 😊 Aqui é a Módulo Interiores, de BH. O que você precisa — forro, parede, piso ou móvel sob medida?",
-          "Olá! Tudo certo por aqui 😊 Módulo Interiores. Me conta o que você quer fazer que eu já te oriento.",
-        ],
-        antes,
-      );
-    }
-    return variar(
-      [
-        "Oi! Aqui é a Módulo. Me diz o serviço e a metragem que eu já te passo o caminho do orçamento.",
-        "Oi de novo 😊 Só preciso do serviço e dos metros pra te orientar.",
-      ],
-      antes,
-    );
-  }
-
-  return variar(
-    [
-      "Entendi. Me diz o serviço (forro, parede, piso, móvel) e a metragem que eu já respondo certinho.",
-      "Certo. Qual o serviço e quantos metros, mais ou menos?",
-    ],
-    antes,
-  );
+  return null;
 }

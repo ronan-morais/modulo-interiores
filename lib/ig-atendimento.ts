@@ -76,12 +76,19 @@ export function absorver(texto: string, estado: Estado): Estado {
     const c = limpar(texto);
     if (c.length >= 2 && !/\?/.test(c)) { dados.cidade = c.slice(0, 80); etapa = "bairro"; }
   } else if (etapa === "bairro") {
-    const b = limpar(texto);
+    const b = limpar(texto).replace(/^bairro\s+(de\s+|do\s+|da\s+)?/i, "");
     if (b.length >= 2 && !/\?/.test(b)) { dados.bairro = b.slice(0, 80); etapa = "prazo"; }
   } else if (etapa === "prazo") {
     if (t.length >= 2 && !/\?/.test(t)) { dados.prazo = texto.slice(0, 60); etapa = "nome"; }
   } else if (etapa === "nome") {
-    const n = limpar(texto);
+    let n = limpar(texto).replace(/^(meu nome (e|é)|me chamo|sou (o|a))\s+/i, "");
+    // "Ronan, Tirol" = nome + bairro na mesma mensagem
+    if (n.includes(",") && !dados.bairro) {
+      const [nomeParte, ...resto] = n.split(",");
+      n = nomeParte.trim();
+      const bairroParte = resto.join(" ").replace(/^bairro\s+/i, "").trim();
+      if (bairroParte.length >= 2) dados.bairro = bairroParte.slice(0, 80);
+    }
     if (n.length >= 2 && !/\d/.test(n) && !/\?/.test(n)) { dados.nome = n.slice(0, 120); etapa = "whatsapp"; }
   } else if (etapa === "whatsapp") {
     const digitos = texto.replace(/\D/g, "");

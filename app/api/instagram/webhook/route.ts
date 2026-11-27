@@ -70,7 +70,7 @@ export async function GET(request: Request) {
   if (debug && verifyToken() && debug === verifyToken()) {
     const para = params.get("to");
     if (!para) return NextResponse.json({ error: "to obrigatorio" }, { status: 400 });
-    const texto = params.get("text") ?? responder("oi", { primeiro: true, anteriores: [] });
+    const texto = params.get("text") ?? responder("oi", { primeiro: true, anteriores: [] }) ?? "Oi! Tudo bem? 😊";
     const resultado = await enviar(para, texto);
     return NextResponse.json({ ...resultado, texto });
   }
@@ -170,48 +170,41 @@ export async function POST(request: Request) {
     servico = extrairServico(bruto.texto) ?? servico;
     metragem = extrairMetragem(bruto.texto) ?? metragem;
 
-    // coleta do formulário de cotação: pergunta campo por campo e salva o lead
+    // coleta do formulário: um campo por mensagem, grava o lead quando fecha
     const estado = await carregarEstado(bruto.para);
-    const perguntaSolto = /\?\s*$/.test(bruto.texto.trim());
-    const querOrcamento = /or[cç]amento|cota[cç][aã]o|quero|preciso|quanto|valor|pre[cç]o|forro|piso|parede|drywall|gesso|pvc|vinil|movel|móvel|reparo/i.test(bruto.texto);
+    const ativo = estado.etapa && estado.etapa !== "fim";
+    const base = ativo
+      ? { etapa: estado.etapa, dados: { ...estado.dados } }
+      : { etapa: "", dados: {} as Record<string, never> };
+    if (!base.dados.servico && servico) (base.dados as Record<string, unknown>).servico = servico;
+    if (!base.dados.area && metragem) {
+      const n = Number(String(metragem).replace(/\D/g, ""));
+      if (n > 0) (base.dados as Record<string, unknown>).area = n;
+    }
+
+    // pergunta solta (?), saudação ou assunto que não é dado do formulário: responde sem consumir campo
+    const intencao = responder(bruto.texto, {
+      primeiro: memoria.respostas.length === 0,
+      anteriores: memoria.respostas,
+      servico: (base.dados as Record<string, string>).servico ?? null,
+      metragem: (base.dados as Record<string, number>).area ? `${(base.dados as Record<string, number>).area} m²` : null,
+    });
 
     let texto: string;
     if (!bruto.texto) {
       texto = "Recebi o arquivo 😊 Me conta o que você quer fazer com ele e a metragem.";
-    } else if (estado.etapa && estado.etapa !== "fim" && perguntaSolto) {
-      texto = responder(bruto.texto, {
-        primeiro: false,
-        anteriores: memoria.respostas,
-        servico: estado.dados.servico ?? servico,
-        metragem: estado.dados.area ? `${estado.dados.area} m²` : metragem,
-      });
-    } else if (estado.etapa && estado.etapa !== "fim") {
-      const r = atender(bruto.texto, { etapa: estado.etapa, dados: estado.dados });
-      if (r.completo) {
-        const leadId = await salvarLead(r.estado.dados);
-        await salvarEstado(bruto.para, "fim", r.estado.dados);
-        texto = leadId ? `${r.resposta} (pedido #${leadId})` : `${r.resposta} Anotei aqui e o Ronan vai registrar.`;
-      } else {
-        await salvarEstado(bruto.para, r.estado.etapa, r.estado.dados);
-        texto = r.resposta;
-      }
-    } else if (querOrcamento) {
-      const r = atender(bruto.texto, { etapa: estado.etapa === "fim" ? "" : estado.etapa, dados: estado.etapa === "fim" ? {} : estado.dados });
-      if (r.completo) {
-        const leadId = await salvarLead(r.estado.dados);
-        await salvarEstado(bruto.para, "fim", r.estado.dados);
-        texto = leadId ? `${r.resposta} (pedido #${leadId})` : r.resposta;
-      } else {
-        await salvarEstado(bruto.para, r.estado.etapa, r.estado.dados);
-        texto = r.resposta;
-      }
+    } else if (intencao) {
+      texto = intencao;
     } else {
-      texto = responder(bruto.texto, {
-        primeiro: memoria.respostas.length === 0,
-        anteriores: memoria.respostas,
-        servico,
-        metragem,
-      });
+      const r = atender(bruto.texto, base as never);
+      if (r.completo) {
+        const leadId = await salvarLead(r.estado.dados);
+        await salvarEstado(bruto.para, "fim", r.estado.dados);
+        texto = leadId ? `${r.resposta} (pedido #${leadId})` : `${r.resposta} Anotei aqui e o Ronan registra.`;
+      } else {
+        await salvarEstado(bruto.para, r.estado.etapa, r.estado.dados);
+        texto = r.resposta;
+      }
     }
     memoria.respostas.push(texto);
     tarefas.push({ para: bruto.para, texto, chave: bruto.chave, recebido: bruto.recebido, id: null });
