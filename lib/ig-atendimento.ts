@@ -53,8 +53,9 @@ function numero(t: string): number | null {
 export function absorver(texto: string, estado: Estado): Estado {
   const t = texto.toLowerCase().trim();
   const dados: Dados = { ...estado.dados };
-  let etapa = estado.etapa;
+  let etapa = estado.etapa || "servico";
 
+  // atalhos: servico e metragem podem vir em qualquer mensagem
   const servico = extrairServico(texto);
   const metragem = extrairMetragem(texto);
   if (servico && !dados.servico) dados.servico = servico;
@@ -62,34 +63,32 @@ export function absorver(texto: string, estado: Estado): Estado {
 
   if (etapa === "servico" && dados.servico) etapa = "area";
   if (etapa === "area" && dados.area) etapa = "tipo";
+  if (etapa !== estado.etapa) return { etapa, dados };
 
+  // um campo por mensagem: o que não foi respondido agora fica pra próxima
   if (etapa === "tipo") {
     if (/comercial|loja|escritorio|escritório|clinica|clínica|galpao|galpão/.test(t)) { dados.tipo = "Comercial"; etapa = "ambientes"; }
-    else if (/residencial|casa|apartamento|apto|ap|sobrado|cozinha|quarto|sala/.test(t)) { dados.tipo = "Residencial"; etapa = "ambientes"; }
-  }
-  if (etapa === "ambientes") {
+    else if (/residencial|casa|apartamento|apto|sobrado|cozinha|quarto|sala/.test(t)) { dados.tipo = "Residencial"; etapa = "ambientes"; }
+  } else if (etapa === "ambientes") {
     const n = numero(t);
     if (n && n <= 200) { dados.ambientes = n; etapa = "cidade"; }
-  }
-  if (etapa === "cidade") {
+  } else if (etapa === "cidade") {
     const c = limpar(texto);
-    if (c.length >= 3) { dados.cidade = c.slice(0, 80); etapa = "bairro"; }
-  }
-  if (etapa === "bairro") {
+    if (c.length >= 2 && !/\?/.test(c)) { dados.cidade = c.slice(0, 80); etapa = "bairro"; }
+  } else if (etapa === "bairro") {
     const b = limpar(texto);
-    if (b.length >= 2) { dados.bairro = b.slice(0, 80); etapa = "prazo"; }
-  }
-  if (etapa === "prazo") {
-    if (t.length >= 2) { dados.prazo = texto.slice(0, 60); etapa = "nome"; }
-  }
-  if (etapa === "nome") {
+    if (b.length >= 2 && !/\?/.test(b)) { dados.bairro = b.slice(0, 80); etapa = "prazo"; }
+  } else if (etapa === "prazo") {
+    if (t.length >= 2 && !/\?/.test(t)) { dados.prazo = texto.slice(0, 60); etapa = "nome"; }
+  } else if (etapa === "nome") {
     const n = limpar(texto);
-    if (n.length >= 2 && !/\d/.test(n)) { dados.nome = n.slice(0, 120); etapa = "whatsapp"; }
-  }
-  if (etapa === "whatsapp") {
+    if (n.length >= 2 && !/\d/.test(n) && !/\?/.test(n)) { dados.nome = n.slice(0, 120); etapa = "whatsapp"; }
+  } else if (etapa === "whatsapp") {
     const digitos = texto.replace(/\D/g, "");
     if (digitos.length >= 10) {
-      dados.whatsapp = digitos.length <= 11 ? `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}` : texto.slice(0, 160);
+      dados.whatsapp = digitos.length >= 12
+        ? texto.slice(0, 160)
+        : `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
       etapa = "fim";
     }
   }

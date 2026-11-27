@@ -105,3 +105,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "storage_unavailable" }, { status: 503 });
   }
 }
+
+/** DELETE /api/leads?id=NN — remove um pedido (Bearer LEADS_API_TOKEN). */
+export async function DELETE(request: Request) {
+  if (!authorized(request)) return unauthorized();
+  const url = new URL(request.url);
+  const id = Number(url.searchParams.get("id") ?? "0");
+  if (!Number.isInteger(id) || id <= 0) {
+    return NextResponse.json({ error: "id invalido" }, { status: 400 });
+  }
+  try {
+    await ensureSchema();
+    await getDb().execute({ sql: `DELETE FROM orcamentos WHERE id = ?`, args: [id] });
+    return NextResponse.json({ ok: true, id });
+  } catch (error) {
+    console.error("Falha ao apagar lead", error);
+    return NextResponse.json({ error: "storage_unavailable" }, { status: 503 });
+  }
+}
