@@ -119,6 +119,15 @@ export async function GET(request: Request) {
 export async function DELETE(request: Request) {
   if (!authorized(request)) return unauthorized();
   const url = new URL(request.url);
+
+  // limpeza de cliente de teste (mesmo token)
+  const clienteId = Number(url.searchParams.get("cliente") ?? "0");
+  if (Number.isInteger(clienteId) && clienteId > 0) {
+    await ensureSchema();
+    await getDb().execute({ sql: "DELETE FROM clientes WHERE id = ?", args: [clienteId] });
+    return NextResponse.json({ ok: true, cliente: clienteId });
+  }
+
   const id = Number(url.searchParams.get("id") ?? "0");
   if (!Number.isInteger(id) || id <= 0) {
     return NextResponse.json({ error: "id invalido" }, { status: 400 });
