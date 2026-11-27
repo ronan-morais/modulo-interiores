@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 
 import { responder } from "@/lib/instagram-dm";
+import { atualizarEnvio, registrarEvento, ultimosEventos } from "@/lib/ig-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,6 +46,17 @@ export async function GET(request: Request) {
       ig_user: Boolean(igUserId()),
       verify: Boolean(verifyToken()),
     });
+  }
+
+  // Últimos eventos do Direct (uso interno): GET ?eventos=<verify_token>
+  const eventos = params.get("eventos");
+  if (eventos && verifyToken() && eventos === verifyToken()) {
+    try {
+      const linhas = await ultimosEventos(Number(params.get("limite") ?? 10));
+      return NextResponse.json({ eventos: linhas });
+    } catch (erro) {
+      return NextResponse.json({ error: String(erro) }, { status: 503 });
+    }
   }
 
   const modo = params.get("hub.mode");
@@ -105,7 +117,7 @@ export async function POST(request: Request) {
   }
 
   const proprio = igUserId();
-  const tarefas: { para: string; texto: string; chave: string }[] = [];
+  const tarefas: { para: string; texto: string; chave: string; recebido: string; id: number | null }[] = [];
 
   for (const entry of payload.entry ?? []) {
     for (const evento of entry.messaging ?? []) {
@@ -122,17 +134,28 @@ export async function POST(request: Request) {
         ? responder(recebido, false)
         : "Recebi seu arquivo 😊 Pra eu te passar o valor certinho, me conta a metragem e o que você quer fazer. O orçamento completo sai aqui: https://modulointeriores.com.br/orcamento";
 
-      tarefas.push({ para: de, texto, chave });
+      tarefas.push({ para: de, texto, chave, recebido: recebido || "[anexo]", id: null });
     }
+  }
+
+  for (const tarefa of tarefas) {
+    tarefa.id = await registrarEvento({
+      igsid: tarefa.para,
+      mid: tarefa.chave,
+      recebido: tarefa.recebido,
+      resposta: tarefa.texto,
+    });
   }
 
   if (tarefas.length > 0) {
     after(async () => {
       for (const tarefa of tarefas) {
         try {
-          await enviar(tarefa.para, tarefa.texto);
+          const resultado = await enviar(tarefa.para, tarefa.texto);
+          await atualizarEnvio(tarefa.id, resultado.ok, resultado.status, resultado.corpo);
         } catch (erro) {
           console.error("[ig-dm] erro inesperado", tarefa.chave, erro);
+          await atualizarEnvio(tarefa.id, false, 0, String(erro));
         }
       }
     });
