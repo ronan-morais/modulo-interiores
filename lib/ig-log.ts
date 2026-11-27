@@ -94,3 +94,102 @@ export async function historicoRecente(igsid: string, limite = 6) {
     return [];
   }
 }
+
+let estadoPronto: Promise<void> | undefined;
+async function tabelaEstado(): Promise<void> {
+  if (!estadoPronto) {
+    estadoPronto = (async () => {
+      await getDb().execute(`CREATE TABLE IF NOT EXISTS ig_dm_estado (
+        igsid TEXT PRIMARY KEY,
+        etapa TEXT NOT NULL,
+        dados TEXT NOT NULL,
+        atualizado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      )`);
+    })();
+  }
+  return estadoPronto;
+}
+
+export async function carregarEstado(igsid: string) {
+  try {
+    await tabelaEstado();
+    const res = await getDb().execute({ sql: `SELECT etapa, dados FROM ig_dm_estado WHERE igsid = ?`, args: [igsid] });
+    const linha = res.rows[0];
+    if (!linha) return { etapa: "", dados: {} };
+    return { etapa: String(linha.etapa), dados: JSON.parse(String(linha.dados)) };
+  } catch (falha) {
+    console.error("[ig-dm] falha ao carregar estado", falha);
+    return { etapa: "", dados: {} };
+  }
+}
+
+export async function salvarEstado(igsid: string, etapa: string, dados: unknown) {
+  try {
+    await tabelaEstado();
+    await getDb().execute({
+      sql: `INSERT INTO ig_dm_estado (igsid, etapa, dados, atualizado_em)
+            VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+            ON CONFLICT(igsid) DO UPDATE SET etapa = excluded.etapa, dados = excluded.dados, atualizado_em = excluded.atualizado_em`,
+      args: [igsid, etapa, JSON.stringify(dados)],
+    });
+  } catch (falha) {
+    console.error("[ig-dm] falha ao salvar estado", falha);
+  }
+}
+
+export type LeadDirect = {
+  nome?: string; whatsapp?: string; servico?: string; area?: number; tipo?: string;
+  ambientes?: number; cidade?: string; bairro?: string; prazo?: string; detalhes?: string;
+};
+
+function idDoServico(titulo?: string): string {
+  if (!titulo) return "forro-pvc";
+  const t = titulo.toLowerCase();
+  if (t.includes("movel") || t.includes("móvel")) return "moveis-drywall";
+  if (t.includes("parede") || t.includes("divis")) return "paredes-drywall";
+  if (t.includes("gesso") || t.includes("sanca")) return "forro-placa-gesso";
+  if (t.includes("modular") && t.includes("forro")) return "forro-modular";
+  if (t.includes("modular")) return "piso-modular";
+  if (t.includes("vinil")) return "piso-vinilico";
+  if (t.includes("manuten")) return "manutencao";
+  return "forro-pvc";
+}
+
+/** Grava o pedido coletado no Direct como um lead do formulário. */
+export async function salvarLead(d: LeadDirect): Promise<number | null> {
+  try {
+    await getDb().execute(`CREATE TABLE IF NOT EXISTS orcamentos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      criado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+      nome TEXT NOT NULL, whatsapp TEXT, email TEXT, servicos TEXT NOT NULL,
+      tipo_imovel TEXT NOT NULL, area_m2 INTEGER, ambientes INTEGER,
+      cidade TEXT NOT NULL, bairro TEXT, prazo TEXT NOT NULL, detalhes TEXT,
+      arquivo TEXT, consentimento INTEGER NOT NULL DEFAULT 0,
+      origem TEXT NOT NULL DEFAULT 'orcamento-online', user_agent TEXT
+    )`);
+    const servicos = JSON.stringify([{ id: idDoServico(d.servico), titulo: d.servico ?? "A definir", area: d.area ?? null }]);
+    const res = await getDb().execute({
+      sql: `INSERT INTO orcamentos (nome, whatsapp, email, servicos, tipo_imovel, area_m2, ambientes,
+              cidade, bairro, prazo, detalhes, arquivo, consentimento, origem, user_agent)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'instagram-direct', 'instagram-direct')`,
+      args: [
+        (d.nome ?? "Contato Instagram").slice(0, 120),
+        d.whatsapp ?? null,
+        null,
+        servicos,
+        d.tipo ?? "Residencial",
+        d.area ?? null,
+        d.ambientes ?? null,
+        (d.cidade ?? "Belo Horizonte").slice(0, 80),
+        d.bairro ?? null,
+        (d.prazo ?? "a definir").slice(0, 60),
+        d.detalhes ?? null,
+        null,
+      ],
+    });
+    return Number(res.lastInsertRowid ?? 0) || null;
+  } catch (falha) {
+    console.error("[ig-dm] falha ao salvar lead", falha);
+    return null;
+  }
+}

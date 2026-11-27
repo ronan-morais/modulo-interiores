@@ -1,7 +1,8 @@
 import { after, NextResponse } from "next/server";
 
 import { extrairMetragem, extrairServico, responder } from "@/lib/instagram-dm";
-import { atualizarEnvio, historicoRecente, registrarEvento, ultimosEventos } from "@/lib/ig-log";
+import { atender } from "@/lib/ig-atendimento";
+import { atualizarEnvio, carregarEstado, historicoRecente, registrarEvento, salvarEstado, salvarLead, ultimosEventos } from "@/lib/ig-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -169,14 +170,49 @@ export async function POST(request: Request) {
     servico = extrairServico(bruto.texto) ?? servico;
     metragem = extrairMetragem(bruto.texto) ?? metragem;
 
-    const texto = bruto.texto
-      ? responder(bruto.texto, {
-          primeiro: memoria.respostas.length === 0,
-          anteriores: memoria.respostas,
-          servico,
-          metragem,
-        })
-      : "Recebi o arquivo 😊 Me conta o que você quer fazer com ele e a metragem, que eu já te oriento.";
+    // coleta do formulário de cotação: pergunta campo por campo e salva o lead
+    const estado = await carregarEstado(bruto.para);
+    const perguntaSolto = /\?\s*$/.test(bruto.texto.trim());
+    const querOrcamento = /or[cç]amento|cota[cç][aã]o|quero|preciso|quanto|valor|pre[cç]o|forro|piso|parede|drywall|gesso|pvc|vinil|movel|móvel|reparo/i.test(bruto.texto);
+
+    let texto: string;
+    if (!bruto.texto) {
+      texto = "Recebi o arquivo 😊 Me conta o que você quer fazer com ele e a metragem.";
+    } else if (estado.etapa && estado.etapa !== "fim" && perguntaSolto) {
+      texto = responder(bruto.texto, {
+        primeiro: false,
+        anteriores: memoria.respostas,
+        servico: estado.dados.servico ?? servico,
+        metragem: estado.dados.area ? `${estado.dados.area} m²` : metragem,
+      });
+    } else if (estado.etapa && estado.etapa !== "fim") {
+      const r = atender(bruto.texto, { etapa: estado.etapa, dados: estado.dados });
+      if (r.completo) {
+        const leadId = await salvarLead(r.estado.dados);
+        await salvarEstado(bruto.para, "fim", r.estado.dados);
+        texto = leadId ? `${r.resposta} (pedido #${leadId})` : `${r.resposta} Anotei aqui e o Ronan vai registrar.`;
+      } else {
+        await salvarEstado(bruto.para, r.estado.etapa, r.estado.dados);
+        texto = r.resposta;
+      }
+    } else if (querOrcamento) {
+      const r = atender(bruto.texto, { etapa: estado.etapa === "fim" ? "" : estado.etapa, dados: estado.etapa === "fim" ? {} : estado.dados });
+      if (r.completo) {
+        const leadId = await salvarLead(r.estado.dados);
+        await salvarEstado(bruto.para, "fim", r.estado.dados);
+        texto = leadId ? `${r.resposta} (pedido #${leadId})` : r.resposta;
+      } else {
+        await salvarEstado(bruto.para, r.estado.etapa, r.estado.dados);
+        texto = r.resposta;
+      }
+    } else {
+      texto = responder(bruto.texto, {
+        primeiro: memoria.respostas.length === 0,
+        anteriores: memoria.respostas,
+        servico,
+        metragem,
+      });
+    }
     memoria.respostas.push(texto);
     tarefas.push({ para: bruto.para, texto, chave: bruto.chave, recebido: bruto.recebido, id: null });
   }
