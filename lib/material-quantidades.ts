@@ -1,3 +1,4 @@
+import base from "@/lib/coeficientes.json";
 import { isUnidade, type OrcamentoUnidade } from "@/lib/orcamento-material";
 
 export type RegraQuantidade =
@@ -279,6 +280,7 @@ function quantidadeAuto(
 ): number {
   const area = areaDoProjeto(sistema, medidas);
   const perda = 1 + Math.max(0, medidas.perdaPercent) / 100;
+  const lado = Math.sqrt(Math.max(area, 0.01));
 
   switch (chave) {
     case "placa":
@@ -307,6 +309,55 @@ function quantidadeAuto(
       return arredondar(area * 1.05);
     case "rodape":
       return arredondar(perimetro(medidas));
+    // forro de PVC
+    case "regua_pvc":
+      return pecas((area * perda) / 1.19);
+    case "trilho_pvc":
+      return pecas((perimetro(medidas)) / 3);
+    case "montante_pvc": {
+      const linhas = pecas(lado / 1.0) + 1;
+      return pecas((linhas * lado) / 3);
+    }
+    case "arame":
+      return arredondar(area * 0.1);
+    // forro modular
+    case "placa_mineral":
+      return pecas((area * perda) / 0.3906);
+    case "perfil_t_principal":
+      return pecas((area * 0.8) / 3.6);
+    case "perfil_t_secundario":
+      return pecas((area * 1.6) / 1.2);
+    case "tirante":
+      return pecas(area * 0.7);
+    // piso vinílico
+    case "piso_vinilico":
+      return arredondar(area * perda);
+    case "cola_piso":
+      return arredondar(area * 0.3);
+    case "rodape_pvc":
+      return pecas(perimetro(medidas) / 2.4);
+    // piso modular
+    case "placa_modular":
+      return pecas((area * perda) / 0.36);
+    case "pedestal":
+      return pecas(area * 3.2);
+    case "borda_piso":
+      return pecas(perimetro(medidas) / 0.6);
+    // móveis de drywall (painel = área do móvel × 2,2 faces)
+    case "chapa_movel":
+      return pecas((area * 2.2 * perda) / 2.16);
+    case "montante_movel": {
+      const linhas = pecas(lado / 0.5) + 1;
+      return pecas((linhas * 2.4) / 3);
+    }
+    case "guia_movel":
+      return pecas((2 * lado + 4.8) / 3);
+    case "parafuso_movel":
+      return Math.max(1, pecas((area * 2.2 * 28) / 1000));
+    case "massa_movel":
+      return Math.max(1, pecas((area * 2.2 * 0.6) / 20));
+    case "fita_movel":
+      return Math.max(1, pecas((area * 2.2 * 2.2) / 150));
     default:
       return 0;
   }
@@ -420,3 +471,90 @@ export function sanitizeTemplateItens(value: unknown): TemplateItem[] {
 
   return itens;
 }
+
+/* ---------- sistemas adicionais (mesma engine, templates por m²) ---------- */
+
+const PRECOS = base.precos as unknown as Record<string, { preco: number }>;
+const pr = (codigo: string, fallback = 0): number =>
+  Math.round((PRECOS[codigo]?.preco ?? fallback) * 100);
+
+sistemasPadrao.push(
+  {
+    id: "forro_pvc",
+    nome: "Forro de PVC",
+    medidaA: "Largura (m)",
+    medidaB: "Comprimento (m)",
+    usaVaos: true,
+    padrao: true,
+  },
+  {
+    id: "forro_modular",
+    nome: "Forro modular",
+    medidaA: "Largura (m)",
+    medidaB: "Comprimento (m)",
+    usaVaos: true,
+    padrao: true,
+  },
+  {
+    id: "piso_vinilico",
+    nome: "Piso vinílico",
+    medidaA: "Largura (m)",
+    medidaB: "Comprimento (m)",
+    usaVaos: false,
+    padrao: true,
+  },
+  {
+    id: "piso_modular",
+    nome: "Piso modular elevado",
+    medidaA: "Largura (m)",
+    medidaB: "Comprimento (m)",
+    usaVaos: false,
+    padrao: true,
+  },
+  {
+    id: "movel",
+    nome: "Móveis de drywall",
+    medidaA: "Frente (m)",
+    medidaB: "Altura (m)",
+    usaVaos: false,
+    padrao: true,
+  },
+);
+
+const templatesNovos: TemplatesPorSistema = {
+  forro_pvc: [
+    { chave: "regua_pvc", descricao: "Régua de PVC 20 cm × 5,95 m", unidade: "un", valorUnitCents: pr("regua_pvc", 46), regra: "auto", fator: null },
+    { chave: "trilho_pvc", descricao: "Trilho / cantoneira PVC — barra 3 m", unidade: "un", valorUnitCents: pr("trilho_pvc", 22), regra: "auto", fator: null },
+    { chave: "montante_pvc", descricao: "Montante 48 — barra 3 m (estrutura)", unidade: "un", valorUnitCents: pr("montante_48", 21.5), regra: "auto", fator: null },
+    { chave: "arame", descricao: "Arame galvanizado nº 18", unidade: "kg", valorUnitCents: pr("arame_18", 14), regra: "auto", fator: null },
+  ],
+  forro_modular: [
+    { chave: "placa_mineral", descricao: "Placa mineral 625 × 625 mm", unidade: "un", valorUnitCents: pr("placa_mineral", 32), regra: "auto", fator: null },
+    { chave: "perfil_t_principal", descricao: "Perfil T principal — barra 3,60 m", unidade: "un", valorUnitCents: pr("perfil_t_principal", 36), regra: "auto", fator: null },
+    { chave: "perfil_t_secundario", descricao: "Perfil T secundário — barra 1,20 m", unidade: "un", valorUnitCents: pr("perfil_t_secundario", 11), regra: "auto", fator: null },
+    { chave: "tirante", descricao: "Tirante / arame de sustentação", unidade: "un", valorUnitCents: pr("tirante", 8.5), regra: "auto", fator: null },
+  ],
+};
+
+Object.assign(templatesNovos, {
+  piso_vinilico: [
+    { chave: "piso_vinilico", descricao: "Piso vinílico em régua (m²)", unidade: "m²", valorUnitCents: pr("piso_vinilico_m2", 89), regra: "auto", fator: null },
+    { chave: "cola_piso", descricao: "Cola para piso vinílico", unidade: "kg", valorUnitCents: pr("cola_piso", 28), regra: "auto", fator: null },
+    { chave: "rodape_pvc", descricao: "Rodapé PVC — barra 2,40 m", unidade: "un", valorUnitCents: pr("rodape", 34), regra: "auto", fator: null },
+  ],
+  piso_modular: [
+    { chave: "placa_modular", descricao: "Placa modular 60 × 60 cm", unidade: "un", valorUnitCents: pr("placa_modular", 46), regra: "auto", fator: null },
+    { chave: "pedestal", descricao: "Pedestal regulável", unidade: "un", valorUnitCents: pr("pedestal", 9.5), regra: "auto", fator: null },
+    { chave: "borda_piso", descricao: "Perfil de borda — peça 60 cm", unidade: "un", valorUnitCents: pr("canaleta_f47", 16.9), regra: "auto", fator: null },
+  ],
+  movel: [
+    { chave: "chapa_movel", descricao: "Chapa drywall 1,80 × 1,20 × 12,5 mm", unidade: "un", valorUnitCents: pr("placa_std_125", 62), regra: "auto", fator: null },
+    { chave: "montante_movel", descricao: "Montante 48 — barra 3 m", unidade: "un", valorUnitCents: pr("montante_48", 21.5), regra: "auto", fator: null },
+    { chave: "guia_movel", descricao: "Guia 48 — barra 3 m", unidade: "un", valorUnitCents: pr("guia_48", 17.8), regra: "auto", fator: null },
+    { chave: "parafuso_movel", descricao: "Parafuso GN25 — caixa 1.000", unidade: "cx", valorUnitCents: pr("parafuso_gn25", 92), regra: "auto", fator: null },
+    { chave: "massa_movel", descricao: "Massa para juntas — saco 20 kg", unidade: "un", valorUnitCents: pr("massa_20kg", 79), regra: "auto", fator: null },
+    { chave: "fita_movel", descricao: "Fita de papel — rolo 150 m", unidade: "un", valorUnitCents: pr("fita_150m", 46), regra: "auto", fator: null },
+  ],
+});
+
+Object.assign(templatesPadrao, templatesNovos);

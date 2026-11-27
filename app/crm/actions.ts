@@ -48,6 +48,7 @@ import {
   resetMaterialTemplate,
 } from "@/lib/material-templates-db";
 import { SERVICO_POR_ID, itensDoServico, areaPorServico } from "@/lib/lead-material";
+import { listMaterialTemplates } from "@/lib/material-templates-db";
 import { atualizarPedido, garantirClienteDoLead } from "@/lib/crm";
 import { getDb } from "@/lib/db";
 import { quoteOptions } from "@/lib/site";
@@ -421,12 +422,15 @@ export async function gerarMateriaisDoLead(formData: FormData) {
   const servicos = lead.servicos.filter((s) => SERVICO_POR_ID[s.id]);
   const area = lead.areaM2 ?? 0;
 
+  // templates do CRM: mesma fonte que a calculadora usa
+  const templates = await listMaterialTemplates();
+
   if (servicos.length > 0 && area > 0) {
     const fatia = areaPorServico(area, servicos.length);
     for (const servico of servicos) {
       const areaServico =
         servico.area && servico.area > 0 ? servico.area : fatia;
-      const itens = itensDoServico(SERVICO_POR_ID[servico.id], areaServico);
+      const itens = itensDoServico(servico.id, areaServico, templates);
       await salvarMaterialDoLead({
         leadId: id,
         servicoId: servico.id,

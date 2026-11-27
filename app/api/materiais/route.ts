@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { ensureSchema, getDb } from "@/lib/db";
 import { ensureCrmSchema } from "@/lib/crm";
 import { sanitizeItens, orcamentoTotais } from "@/lib/orcamento-material";
+import { itensDoServico, SERVICO_POR_ID } from "@/lib/lead-material";
+import { listMaterialTemplates } from "@/lib/material-templates-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,4 +68,29 @@ export async function POST(request: Request) {
     console.error("Falha ao salvar lista de material", error);
     return NextResponse.json({ error: "falha ao salvar" }, { status: 503 });
   }
+}
+
+/**
+ * GET /api/materiais?servico=<id>&area=<m²> — prévia da lista de material
+ * usando a mesma engine da calculadora (diagnóstico/QA).
+ */
+export async function GET(request: Request) {
+  if (!authorized(request)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  const url = new URL(request.url);
+  const servico = url.searchParams.get("servico") ?? "forro-placa-gesso";
+  const area = Number(url.searchParams.get("area") ?? "12");
+  if (!(area > 0)) return NextResponse.json({ error: "area invalida" }, { status: 400 });
+
+  const templates = await listMaterialTemplates();
+  const itens = itensDoServico(servico, area, templates);
+  const total = itens.reduce((soma, item) => soma + Math.round(item.quantidade * item.valorUnitCents), 0);
+  return NextResponse.json({
+    servico,
+    area,
+    sistema: SERVICO_POR_ID[servico] ?? null,
+    itens,
+    totalCents: total,
+  });
 }
