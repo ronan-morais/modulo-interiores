@@ -77,18 +77,18 @@ export function responder(texto: string, ctx: Contexto): string {
     );
   }
 
-  // serviço + metragem já conhecidos: reconhece e encaminha pro orçamento
-  if (servico && metragem) {
+  // serviço + metragem já conhecidos: só puxa orçamento se o assunto é esse
+  const citouAgora = Boolean(extrairServico(texto) ?? extrairMetragem(texto));
+  const querPreco = /or[cç]amento|cota[cç][aã]o|valor|pre[cç]o|quanto/i.test(t);
+  if (servico && metragem && (citouAgora || querPreco || reclamou)) {
     const base = `${servico} em ${metragem}${reclamou ? ", anotado de novo e sem perguntar outra vez" : ", anotado"}.`;
-    if (/or[cç]amento|cota[cç][aã]o|valor|pre[cç]o|quanto/i.test(t) || reclamou || metragem) {
-      return variar(
-        [
-          `${base} Pra fechar o valor a gente usa o formulário de orçamento do site: você informa o serviço e a metragem e a gente responde com a conta. Se quiser, já passo pro Ronan te chamar.`,
-          `${base} A cotação sai pelo formulário do site — só serviço e metragem — e a resposta vem com o valor. Prefere que o Ronan te chame no WhatsApp?`,
-        ],
-        antes,
-      );
-    }
+    return variar(
+      [
+        `${base} Pra fechar o valor a gente usa o formulário de orçamento do site: você informa o serviço e a metragem e a gente responde com a conta. Se quiser, já passo pro Ronan te chamar.`,
+        `${base} A cotação sai pelo formulário do site — só serviço e metragem — e a resposta vem com o valor. Prefere que o Ronan te chame no WhatsApp?`,
+      ],
+      antes,
+    );
   }
 
   if (servico && !metragem) {
@@ -142,11 +142,17 @@ export function responder(texto: string, ctx: Contexto): string {
   }
 
   if (/prazo|quando|demora|tempo/i.test(t)) {
+    const assunto = servico ? `${servico}${metragem ? ` em ${metragem}` : ""}` : null;
     return variar(
-      [
-        "O prazo depende do tamanho e da agenda. Passando serviço e metragem eu já te digo a previsão.",
-        "Varia com a metragem e o serviço — me diz os dois que eu falo o prazo.",
-      ],
+      assunto
+        ? [
+            `Sobre ${assunto}: o prazo depende da agenda da equipe — eu confirmo a data com o Ronan e te falo.`,
+            `${assunto} entra na agenda da semana; o Ronan confirma o dia exato. Quer que eu peça?`,
+          ]
+        : [
+            "O prazo depende do tamanho e da agenda. Passando serviço e metragem eu já te digo a previsão.",
+            "Varia com a metragem e o serviço — me diz os dois que eu falo o prazo.",
+          ],
       antes,
     );
   }
