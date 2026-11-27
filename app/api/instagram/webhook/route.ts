@@ -190,10 +190,15 @@ export async function POST(request: Request) {
       metragem: (base.dados as Record<string, number>).area ? `${(base.dados as Record<string, number>).area} m²` : null,
     });
 
+    // durante a coleta, só interrompe para responder pergunta de verdade (?),
+    // senão "Contagem" seria tratado como papo de região e não como cidade.
+    const coletando = Boolean(base.etapa) && base.etapa !== "fim";
+    const pergunta = /\?\s*$/.test(bruto.texto.trim());
+
     let texto: string;
     if (!bruto.texto) {
       texto = "Recebi o arquivo 😊 Me conta o que você quer fazer com ele e a metragem.";
-    } else if (intencao) {
+    } else if (intencao && (!coletando || pergunta)) {
       texto = intencao;
     } else {
       const r = atender(bruto.texto, base as never);

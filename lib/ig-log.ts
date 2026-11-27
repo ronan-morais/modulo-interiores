@@ -39,16 +39,7 @@ export async function registrarEvento(dados: {
       sql: `INSERT INTO ig_dm_eventos (igsid, mid, recebido, resposta) VALUES (?, ?, ?, ?)`,
       args: [dados.igsid, dados.mid, dados.recebido.slice(0, 1000), dados.resposta.slice(0, 2000)],
     });
-    const leadId = Number(res.lastInsertRowid ?? 0);
-    // lead do Direct também vira cliente, igual ao formulário do site
-    if (leadId) {
-      try {
-        await garantirClienteDoLead(leadId, "Instagram Direct");
-      } catch {
-        /* cliente é opcional: não derruba o lead */
-      }
-    }
-    return leadId || null;
+    return Number(res.lastInsertRowid ?? 0) || null;
   } catch (erro) {
     console.error("[ig-dm] falha ao registrar evento", erro);
     return null;
@@ -197,7 +188,16 @@ export async function salvarLead(d: LeadDirect): Promise<number | null> {
         null,
       ],
     });
-    return Number(res.lastInsertRowid ?? 0) || null;
+    const leadId = Number(res.lastInsertRowid ?? 0) || null;
+    // lead do Direct também vira cliente, igual ao formulário do site
+    if (leadId) {
+      try {
+        await garantirClienteDoLead(leadId, "Instagram Direct");
+      } catch (erro) {
+        console.error("[ig-dm] falha ao criar cliente do lead", erro);
+      }
+    }
+    return leadId;
   } catch (falha) {
     console.error("[ig-dm] falha ao salvar lead", falha);
     return null;
