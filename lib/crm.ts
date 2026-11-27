@@ -4,10 +4,12 @@ import { ensureSchema, getDb } from "@/lib/db";
 
 export const leadStatuses = [
   { id: "novo", label: "Contato inicial" },
-  { id: "em_contato", label: "Em contato" },
+  { id: "em_contato", label: "Em atendimento" },
+  { id: "em_orcamento", label: "Em orçamento" },
   { id: "orcado", label: "Orçado" },
   { id: "ganho", label: "Ganho" },
   { id: "perdido", label: "Perdido" },
+  { id: "concluido", label: "Obra concluída" },
 ] as const;
 
 export type LeadStatus = (typeof leadStatuses)[number]["id"];
@@ -279,9 +281,11 @@ export async function leadCounts(): Promise<{
   const byStatus: Record<LeadStatus, number> = {
     novo: 0,
     em_contato: 0,
+    em_orcamento: 0,
     orcado: 0,
     ganho: 0,
     perdido: 0,
+    concluido: 0,
   };
 
   let total = 0;
@@ -381,7 +385,28 @@ export async function atualizarPedido(id: number, d: PedidoEditavel): Promise<vo
   });
 }
 
-export async function garantirClienteDoLead(id: number): Promise<number | null> {
+/** Cliente já vinculado a este contato (mesmo WhatsApp ou e-mail), se houver. */
+export async function clienteDoLead(id: number): Promise<{ id: number; nome: string } | null> {
+  await ensureCrmSchema();
+  const rs = await getDb().execute({
+    sql: "SELECT whatsapp, email FROM orcamentos WHERE id = ?",
+    args: [id],
+  });
+  if (rs.rows.length === 0) return null;
+  const whatsapp = rs.rows[0].whatsapp ? String(rs.rows[0].whatsapp) : null;
+  const email = rs.rows[0].email ? String(rs.rows[0].email) : null;
+  if (!whatsapp && !email) return null;
+  const ex = await getDb().execute({
+    sql: `SELECT id, nome FROM clientes
+           WHERE (whatsapp IS NOT NULL AND whatsapp = ?) OR (email IS NOT NULL AND email = ?)
+           LIMIT 1`,
+    args: [whatsapp, email],
+  });
+  if (ex.rows.length === 0) return null;
+  return { id: Number(ex.rows[0].id), nome: String(ex.rows[0].nome ?? "") };
+}
+
+export async function garantirClienteDoLead(id: number, rotulo = "formulário do site"): Promise<number | null> {
   await ensureCrmSchema();
   const rs = await getDb().execute({
     sql: "SELECT nome, whatsapp, email, cidade, bairro FROM orcamentos WHERE id = ?",
@@ -404,7 +429,7 @@ export async function garantirClienteDoLead(id: number): Promise<number | null> 
     sql: `INSERT INTO clientes (nome, whatsapp, email, cidade, bairro, observacoes)
           VALUES (?, ?, ?, ?, ?, ?)`,
     args: [nome, whatsapp, email, String(r.cidade ?? ""), r.bairro ? String(r.bairro) : null,
-           `Contato inicial · lead #${id} (formulário do site)`],
+           `Contato inicial · lead #${id} (${rotulo})`],
   });
   return Number(ins.lastInsertRowid);
 }

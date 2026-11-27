@@ -2734,6 +2734,16 @@ article[id] {
   color: #8a3b32;
 }
 
+.crm-badge[data-status="em_orcamento"] {
+  background: #f4eff7;
+  color: #5c3f75;
+}
+
+.crm-badge[data-status="concluido"] {
+  background: #e9eee9;
+  color: #33473a;
+}
+
 .crm-empty {
   margin-top: 20px;
   background: var(--surface);

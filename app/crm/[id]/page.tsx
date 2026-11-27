@@ -5,6 +5,7 @@ import { CrmShell } from "@/components/CrmShell";
 import { Icon } from "@/components/Icon";
 import {
   formatTimestamp,
+  clienteDoLead,
   getLead,
   isAuthenticated,
   leadStatuses,
@@ -13,7 +14,7 @@ import {
   statusLabel,
   whatsappHref,
 } from "@/lib/crm";
-import { deleteLead, gerarMateriaisDoLead, saveLead, savePedido } from "../actions";
+import { deleteLead, gerarMateriaisDoLead, salvarComoCliente, saveLead, savePedido } from "../actions";
 import {
   listarMateriaisDoLead,
   type MaterialDoLead,
@@ -63,6 +64,7 @@ export default async function LeadPage({
   const materiais = await listarMateriaisDoLead(lead.id);
   const anexos = await anexosDoLead(lead.id);
   const servicosComMotor = lead.servicos.filter((s) => SERVICO_POR_ID[s.id]).length;
+  const cliente = await clienteDoLead(lead.id);
   const waHref = whatsappHref(lead.whatsapp);
   const telHref = lead.whatsapp ? `tel:+${lead.whatsapp.replace(/\D/g, "")}` : null;
 
@@ -78,6 +80,20 @@ export default async function LeadPage({
           <span className="crm-badge crm-badge-origem" data-origem={lead.origem}>
             Origem: {origemLabel(lead.origem)}
           </span>
+          {cliente ? (
+            <Link className="btn btn-outline btn-sm" href="/crm/clientes">
+              <Icon name="check" size={14} />
+              Cliente
+            </Link>
+          ) : (
+            <form action={salvarComoCliente}>
+              <input type="hidden" name="id" value={lead.id} />
+              <button className="btn btn-outline btn-sm" type="submit">
+                <Icon name="check" size={14} />
+                Salvar como cliente
+              </button>
+            </form>
+          )}
           {telHref ? (
             <a className="btn btn-outline btn-sm" href={telHref}>
               <Icon name="phone" size={14} />

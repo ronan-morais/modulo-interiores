@@ -54,6 +54,15 @@ export async function GET(request: Request) {
 
   if (!authorized(request)) return unauthorized();
 
+  // Diagnóstico autenticado: últimos clientes criados (para conferir o vínculo).
+  if (url.searchParams.get("clientes") === "1") {
+    await ensureSchema();
+    const rs = await getDb().execute({
+      sql: "SELECT id, nome, whatsapp, email, observacoes FROM clientes ORDER BY id DESC LIMIT 10",
+    });
+    return NextResponse.json({ total: rs.rows.length, clientes: rs.rows });
+  }
+
   const desdeParam = Number(url.searchParams.get("desde") ?? "0");
   const limiteParam = Number(url.searchParams.get("limite") ?? "20");
   const desde = Number.isFinite(desdeParam) && desdeParam > 0 ? Math.floor(desdeParam) : 0;

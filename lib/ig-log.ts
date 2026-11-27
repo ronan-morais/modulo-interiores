@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import { garantirClienteDoLead } from "@/lib/crm";
 
 /**
  * Log dos eventos do Direct no Turso. Serve pra depurar o webhook e auditar o
@@ -38,7 +39,16 @@ export async function registrarEvento(dados: {
       sql: `INSERT INTO ig_dm_eventos (igsid, mid, recebido, resposta) VALUES (?, ?, ?, ?)`,
       args: [dados.igsid, dados.mid, dados.recebido.slice(0, 1000), dados.resposta.slice(0, 2000)],
     });
-    return Number(res.lastInsertRowid ?? 0) || null;
+    const leadId = Number(res.lastInsertRowid ?? 0);
+    // lead do Direct também vira cliente, igual ao formulário do site
+    if (leadId) {
+      try {
+        await garantirClienteDoLead(leadId, "Instagram Direct");
+      } catch {
+        /* cliente é opcional: não derruba o lead */
+      }
+    }
+    return leadId || null;
   } catch (erro) {
     console.error("[ig-dm] falha ao registrar evento", erro);
     return null;

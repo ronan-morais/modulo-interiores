@@ -507,3 +507,16 @@ export async function sincronizarContatos() {
   revalidatePath("/crm/clientes");
   redirect(`/crm/clientes?sincronizados=${criados}`);
 }
+
+/** Vincula o contato à lista de clientes (mesmo WhatsApp/e-mail). */
+export async function salvarComoCliente(formData: FormData) {
+  await requireSession();
+
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id <= 0) redirect("/crm");
+
+  await garantirClienteDoLead(id, "CRM");
+  revalidatePath("/crm/clientes");
+  revalidatePath(`/crm/${id}`);
+  redirect(`/crm/${id}?cliente=1`);
+}
