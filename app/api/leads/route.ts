@@ -55,6 +55,17 @@ export async function GET(request: Request) {
   if (!authorized(request)) return unauthorized();
 
   // Diagnóstico autenticado: últimos clientes criados (para conferir o vínculo).
+  const vincular = Number(url.searchParams.get("vincular") ?? "0");
+  if (Number.isInteger(vincular) && vincular > 0) {
+    try {
+      const { garantirClienteDoLead } = await import("@/lib/crm");
+      const idCliente = await garantirClienteDoLead(vincular, "diagnostico");
+      return NextResponse.json({ ok: true, cliente: idCliente });
+    } catch (erro) {
+      return NextResponse.json({ ok: false, erro: String(erro) }, { status: 500 });
+    }
+  }
+
   if (url.searchParams.get("clientes") === "1") {
     await ensureSchema();
     const rs = await getDb().execute({
