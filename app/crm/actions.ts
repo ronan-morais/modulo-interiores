@@ -10,6 +10,7 @@ import {
   credentialsValid,
   getLead,
   isAuthenticated,
+  isLeadOrigem,
   isLeadStatus,
   removeLead,
   updateLead,
@@ -125,7 +126,13 @@ export async function saveLead(formData: FormData) {
     .trim()
     .slice(0, 4000);
 
-  await updateLead(id, isLeadStatus(status) ? status : "novo", notas);
+  const origem = String(formData.get("origem") ?? "").trim();
+  await updateLead(
+    id,
+    isLeadStatus(status) ? status : "novo",
+    notas,
+    isLeadOrigem(origem) ? origem : undefined,
+  );
   revalidatePath("/crm");
   revalidatePath(`/crm/${id}`);
   redirect(`/crm/${id}?salvo=1`);

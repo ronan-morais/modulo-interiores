@@ -29,6 +29,7 @@ export type Lead = {
   prazo: string;
   detalhes: string;
   arquivo: string;
+  origem: string;
   status: LeadStatus;
   notas: string;
   atualizadoEm: string | null;
@@ -41,6 +42,18 @@ let columnsReady: Promise<void> | undefined;
 
 export function isLeadStatus(value: unknown): value is LeadStatus {
   return leadStatuses.some((status) => status.id === value);
+}
+
+export const leadOrigens = [
+  { id: "orcamento-online", label: "Formulário do site" },
+  { id: "instagram-direct", label: "Instagram" },
+  { id: "whatsapp", label: "WhatsApp" },
+  { id: "presencial", label: "Presencial" },
+  { id: "indicacao", label: "Indicação" },
+] as const;
+
+export function origemLabel(origem: string): string {
+  return leadOrigens.find((item) => item.id === origem)?.label ?? origem;
 }
 
 export function statusLabel(status: LeadStatus): string {
@@ -216,6 +229,7 @@ function mapLead(row: Record<string, unknown>): Lead {
     prazo: String(row.prazo ?? ""),
     detalhes: String(row.detalhes ?? ""),
     arquivo: String(row.arquivo ?? ""),
+    origem: String(row.origem ?? "orcamento-online"),
     status: isLeadStatus(row.status) ? row.status : "novo",
     notas: String(row.notas ?? ""),
     atualizadoEm: row.atualizado_em ? String(row.atualizado_em) : null,
@@ -292,18 +306,24 @@ export async function getLead(id: number): Promise<Lead | null> {
   return row ? mapLead(row as Record<string, unknown>) : null;
 }
 
+export function isLeadOrigem(value: unknown): boolean {
+  return leadOrigens.some((item) => item.id === value);
+}
+
 export async function updateLead(
   id: number,
   status: LeadStatus,
   notas: string,
+  origem?: string,
 ): Promise<void> {
   await ensureCrmSchema();
 
   await getDb().execute({
     sql: `UPDATE orcamentos
-          SET status = ?, notas = ?, atualizado_em = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+          SET status = ?, notas = ?, origem = COALESCE(?, origem),
+              atualizado_em = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
           WHERE id = ?`,
-    args: [status, notas, id],
+    args: [status, notas, origem ?? null, id],
   });
 }
 

@@ -2699,6 +2699,34 @@ article[id] {
   color: var(--ink-2);
 }
 
+.crm-badge-origem {
+  background: #f4ece6;
+  color: #8c5636;
+  border: 1px solid #e6d6c9;
+  margin-top: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.crm-badge-origem[data-origem="instagram-direct"] {
+  background: #f2e9f7;
+  color: #7a3f9d;
+  border-color: #e2d1ee;
+}
+
+.crm-badge-origem[data-origem="presencial"] {
+  background: #eaf3ec;
+  color: #2f6b4f;
+  border-color: #cfe3d6;
+}
+
+.crm-badge-origem[data-origem="whatsapp"] {
+  background: #e9f3ee;
+  color: #1f7a4d;
+  border-color: #cfe6da;
+}
+
 .crm-badge {
   display: inline-flex;
   align-items: center;

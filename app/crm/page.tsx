@@ -10,6 +10,7 @@ import {
   leadCounts,
   leadStatuses,
   listLeads,
+  origemLabel,
   statusLabel,
   type LeadStatus,
 } from "@/lib/crm";
@@ -135,6 +136,9 @@ export default async function CrmPage({
                       </span>
                       <span className="crm-muted crm-who-date">
                         {formatTimestamp(lead.criadoEm)}
+                      </span>
+                      <span className="crm-badge crm-badge-origem" data-origem={lead.origem}>
+                        {origemLabel(lead.origem)}
                       </span>
                     </td>
                     <td className="crm-cell-services">

@@ -8,6 +8,8 @@ import {
   getLead,
   isAuthenticated,
   leadStatuses,
+  leadOrigens,
+  origemLabel,
   statusLabel,
   whatsappHref,
 } from "@/lib/crm";
@@ -72,6 +74,9 @@ export default async function LeadPage({
         <div className="crm-head-actions">
           <span className="crm-badge" data-status={lead.status}>
             {statusLabel(lead.status)}
+          </span>
+          <span className="crm-badge crm-badge-origem" data-origem={lead.origem}>
+            Origem: {origemLabel(lead.origem)}
           </span>
           {telHref ? (
             <a className="btn btn-outline btn-sm" href={telHref}>
@@ -291,6 +296,23 @@ export default async function LeadPage({
                 defaultValue={lead.status}
               >
                 {leadStatuses.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field-group">
+              <label className="field-label" htmlFor="origem">
+                Origem do contato
+              </label>
+              <select
+                className="select"
+                id="origem"
+                name="origem"
+                defaultValue={lead.origem}
+              >
+                {leadOrigens.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.label}
                   </option>
