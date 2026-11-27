@@ -66,6 +66,14 @@ export default function PrivacidadePage() {
                 compartilhamos dados com terceiros para publicidade.
               </p>
 
+              <h2>Redes sociais e publicação</h2>
+              <p>
+                Fotos de obra publicadas nos perfis da Módulo Interiores no
+                Instagram e no Facebook mostram apenas os ambientes executados.
+                Imagens enviadas por clientes pelo formulário não são
+                publicadas sem autorização por escrito.
+              </p>
+
               <h2>Cookies e analytics</h2>
               <p>
                 Este site não utiliza cookies de publicidade, rastreadores ou
