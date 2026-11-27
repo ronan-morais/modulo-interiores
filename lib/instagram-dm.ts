@@ -80,6 +80,18 @@ export function responder(texto: string, ctx: Contexto): string {
     );
   }
 
+  if (reclamou) {
+    if (assunto && !metragem) {
+      return `Desculpa a repetição. Já tenho o serviço: ${assunto}. Falta só a metragem — quantos m², mais ou menos?`;
+    }
+    if (assunto && metragem) {
+      return jaPediuDados
+        ? `Desculpa. Deixa comigo: ${assunto}, já tenho tudo. O Ronan te chama no WhatsApp pra fechar.`
+        : `Desculpa a repetição. Anotei: ${assunto}. Me passa teu nome e o bairro que eu passo pro Ronan.`;
+    }
+    return "Desculpa. Me diz em uma frase o que você precisa (serviço + metragem) que eu já encaminho.";
+  }
+
   if (/prazo|quando|demora|tempo/i.test(t)) {
     return variar(
       assunto
@@ -140,8 +152,8 @@ export function responder(texto: string, ctx: Contexto): string {
     if (jaPediuDados) {
       return variar(
         [
-          `Anotado: ${assunto}. Já mandei pro Ronan, ele te chama no WhatsApp pra fechar a medida.`,
-          `Perfeito, ${assunto} anotado. O Ronan assume daqui e te chama pra fechar o orçamento.`,
+          `Anotado: ${assunto}. Só falta teu nome e o bairro pra eu passar pro Ronan fechar a medida.`,
+          `Perfeito, ${assunto} anotado. Me passa teu nome e o bairro que o Ronan assume daqui.`,
         ],
         antes,
       );
