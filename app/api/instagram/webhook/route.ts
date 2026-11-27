@@ -47,22 +47,33 @@ export async function GET(request: Request) {
     });
   }
 
-  const mode = params.get("hub.mode");
+  const modo = params.get("hub.mode");
   const recebido = params.get("hub.verify_token");
   const challenge = params.get("hub.challenge") ?? "";
 
-  if (mode === "subscribe" && verifyToken() && recebido === verifyToken()) {
+  // Diagnóstico protegido: GET ?debug=<verify_token>&to=<igsid>[&text=...]
+  // envia a resposta de forma síncrona e devolve o retorno cru da Graph API.
+  const debug = params.get("debug");
+  if (debug && verifyToken() && debug === verifyToken()) {
+    const para = params.get("to");
+    if (!para) return NextResponse.json({ error: "to obrigatorio" }, { status: 400 });
+    const texto = params.get("text") ?? responder("oi", true);
+    const resultado = await enviar(para, texto);
+    return NextResponse.json({ ...resultado, texto });
+  }
+
+  if (modo === "subscribe" && verifyToken() && recebido === verifyToken()) {
     return new Response(challenge, { status: 200, headers: { "content-type": "text/plain" } });
   }
 
   return new Response("forbidden", { status: 403 });
 }
 
-async function enviar(para: string, texto: string): Promise<void> {
+async function enviar(para: string, texto: string): Promise<{ ok: boolean; status: number; corpo: string }> {
   const tok = token();
   if (!tok) {
     console.error("[ig-dm] IG_ACCESS_TOKEN ausente");
-    return;
+    return { ok: false, status: 0, corpo: "IG_ACCESS_TOKEN ausente" };
   }
   const resp = await fetch(`${GRAPH}/${igUserId()}/messages`, {
     method: "POST",
@@ -74,13 +85,15 @@ async function enviar(para: string, texto: string): Promise<void> {
     }),
   });
 
+  const corpo = (await resp.text()).slice(0, 600);
   if (!resp.ok) {
-    const corpo = await resp.text();
-    console.error("[ig-dm] falha ao responder", para, resp.status, corpo.slice(0, 400));
-    return;
+    console.error("[ig-dm] falha ao responder", para, resp.status, corpo);
+  } else {
+    console.log("[ig-dm] respondido", para);
   }
-  console.log("[ig-dm] respondido", para);
+  return { ok: resp.ok, status: resp.status, corpo };
 }
+
 
 /** POST /api/instagram/webhook — eventos de mensagem do Direct. */
 export async function POST(request: Request) {
